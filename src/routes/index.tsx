@@ -85,6 +85,22 @@ function Index() {
     return { eeg, emg, classification: c, binary: classificationToBinary(c) };
   }, [signals, thresholds]);
 
+  // Save to history once when a new analysis result is ready
+  useEffect(() => {
+    if (!result || !thumbnail || !filename || savedId) return;
+    const id = `${Date.now()}`;
+    saveEntry({
+      id,
+      date: new Date().toISOString(),
+      filename,
+      thumbnail,
+      eeg: result.eeg,
+      emg: result.emg,
+      classification: result.classification,
+    });
+    setSavedId(id);
+  }, [result, thumbnail, filename, savedId]);
+
   return (
     <div className="min-h-screen bg-background">
       <main className="mx-auto max-w-6xl space-y-6 px-6 py-8">
