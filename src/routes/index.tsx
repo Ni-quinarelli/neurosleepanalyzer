@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Activity, Download } from "lucide-react";
+import { Download, FileText } from "lucide-react";
+import { fileToThumbnail, saveEntry } from "@/utils/history";
+import { exportPDF } from "@/utils/pdfExport";
 import { UploadZone } from "@/components/UploadZone";
 import { SignalChart } from "@/components/SignalChart";
 import { MetricsTable } from "@/components/MetricsTable";
