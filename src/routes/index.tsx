@@ -78,14 +78,13 @@ function Index() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card">
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-6 py-4">
-          <Activity className="h-5 w-5 text-primary" />
-          <h1 className="text-lg font-semibold tracking-tight">Sleep Signal Analyzer</h1>
-        </div>
-      </header>
-
       <main className="mx-auto max-w-6xl space-y-6 px-6 py-8">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">New Analysis</h1>
+          <p className="text-sm text-muted-foreground">
+            Upload an EEG/EMG image to extract signals and classify the sleep state.
+          </p>
+        </div>
         {!signals && (
           <div className="mx-auto max-w-2xl">
             <UploadZone onFile={handleFile} />
