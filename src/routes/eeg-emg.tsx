@@ -1,0 +1,190 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Download, FileText, FileImage } from "lucide-react";
+import { SingleUpload } from "@/components/SingleUpload";
+import { SignalChart } from "@/components/SignalChart";
+import { MetricsTable } from "@/components/MetricsTable";
+import { ClassificationBadge } from "@/components/ClassificationBadge";
+import { ParameterPanel } from "@/components/ParameterPanel";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import { extractSingleSignal } from "@/utils/imageProcessor";
+import {
+  classify, classificationToBinary, computeMetrics,
+  defaultThresholds, type Thresholds, type SignalMetrics,
+} from "@/utils/signalAnalysis";
+import { exportCSV } from "@/utils/csvExport";
+import { exportElementPDF, exportPDF } from "@/utils/pdfExport";
+import { fileToThumbnail, saveEntry } from "@/utils/history";
+
+export const Route = createFileRoute("/eeg-emg")({
+  component: Page,
+  head: () => ({
+    meta: [
+      { title: "Análise EEG/EMG — NeuroSleep Analytica" },
+      { name: "description", content: "Anexe imagens separadas de EEG e EMG e classifique o estado de sono." },
+    ],
+  }),
+});
+
+function Page() {
+  const [eegFile, setEegFile] = useState<File | null>(null);
+  const [emgFile, setEmgFile] = useState<File | null>(null);
+  const [eegPreview, setEegPreview] = useState<string | null>(null);
+  const [emgPreview, setEmgPreview] = useState<string | null>(null);
+  const [eegSignal, setEegSignal] = useState<number[] | null>(null);
+  const [emgSignal, setEmgSignal] = useState<number[] | null>(null);
+  const [thresholds, setThresholds] = useState<Thresholds>(defaultThresholds);
+  const [busy, setBusy] = useState(false);
+  const [savedId, setSavedId] = useState<string | null>(null);
+  const pageRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!eegFile) { setEegPreview(null); setEegSignal(null); return; }
+    const url = URL.createObjectURL(eegFile);
+    setEegPreview(url);
+    setBusy(true);
+    extractSingleSignal(eegFile).then(setEegSignal).finally(() => setBusy(false));
+    return () => URL.revokeObjectURL(url);
+  }, [eegFile]);
+
+  useEffect(() => {
+    if (!emgFile) { setEmgPreview(null); setEmgSignal(null); return; }
+    const url = URL.createObjectURL(emgFile);
+    setEmgPreview(url);
+    setBusy(true);
+    extractSingleSignal(emgFile).then(setEmgSignal).finally(() => setBusy(false));
+    return () => URL.revokeObjectURL(url);
+  }, [emgFile]);
+
+  useEffect(() => { setSavedId(null); }, [eegFile, emgFile]);
+
+  const result = useMemo(() => {
+    if (!eegSignal || !emgSignal) return null;
+    const eeg = computeMetrics(eegSignal, thresholds.peakSensitivity);
+    const emg = computeMetrics(emgSignal, thresholds.peakSensitivity);
+    const c = classify(eeg, emg, thresholds);
+    return { eeg, emg, classification: c, binary: classificationToBinary(c) };
+  }, [eegSignal, emgSignal, thresholds]);
+
+  // save once per pair
+  useEffect(() => {
+    (async () => {
+      if (!result || !eegFile || savedId) return;
+      const thumb = await fileToThumbnail(eegFile);
+      const id = `${Date.now()}`;
+      saveEntry({
+        id,
+        date: new Date().toISOString(),
+        type: "eeg-emg",
+        filename: `${eegFile.name}${emgFile ? " + " + emgFile.name : ""}`,
+        thumbnail: thumb,
+        eeg: result.eeg as SignalMetrics,
+        emg: result.emg as SignalMetrics,
+        classification: result.classification,
+      });
+      setSavedId(id);
+    })();
+  }, [result, eegFile, emgFile, savedId]);
+
+  return (
+    <div ref={pageRef} className="mx-auto max-w-6xl space-y-6 px-6 py-8">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">Análise EEG/EMG</h1>
+        <p className="text-sm text-muted-foreground">
+          Anexe a imagem do EEG e do EMG separadamente. A classificação do estado de sono será calculada automaticamente.
+        </p>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <SingleUpload
+          label="Imagem EEG"
+          file={eegFile}
+          preview={eegPreview}
+          onFile={setEegFile}
+          hint="Traçado eletroencefalográfico"
+        />
+        <SingleUpload
+          label="Imagem EMG"
+          file={emgFile}
+          preview={emgPreview}
+          onFile={setEmgFile}
+          hint="Traçado eletromiográfico"
+        />
+      </div>
+
+      {busy && <p className="text-sm text-muted-foreground">Processando…</p>}
+
+      {result && eegSignal && emgSignal && (
+        <div className="space-y-6">
+          <Card className="space-y-4 p-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium">Classificação</p>
+              <ClassificationBadge value={result.classification} />
+            </div>
+            <SignalChart data={eegSignal} color="hsl(220 70% 45%)" label="EEG" />
+            <SignalChart data={emgSignal} color="hsl(15 70% 45%)" label="EMG" />
+          </Card>
+
+          <Card className="p-4">
+            <p className="mb-3 text-sm font-medium">Métricas do sinal</p>
+            <MetricsTable eeg={result.eeg} emg={result.emg} />
+          </Card>
+
+          <Card className="p-4">
+            <p className="mb-3 text-sm font-medium">Saída binária</p>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="font-mono">Sono_ondas_lentas</TableHead>
+                  <TableHead className="font-mono">REM</TableHead>
+                  <TableHead className="font-mono">Vigilia</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell className="font-mono">{result.binary.Sono_ondas_lentas}</TableCell>
+                  <TableCell className="font-mono">{result.binary.REM}</TableCell>
+                  <TableCell className="font-mono">{result.binary.Vigilia}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </Card>
+
+          <ParameterPanel thresholds={thresholds} onChange={setThresholds} />
+
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={() => pageRef.current && exportElementPDF(pageRef.current, "neurosleep_eeg_emg_pagina")}
+            >
+              <FileImage className="h-4 w-4" /> Baixar página em PDF
+            </Button>
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={() => exportPDF({
+                filename: eegFile?.name,
+                eeg: result.eeg,
+                emg: result.emg,
+                classification: result.classification,
+              })}
+            >
+              <FileText className="h-4 w-4" /> Relatório PDF
+            </Button>
+            <Button
+              className="gap-2"
+              onClick={() => exportCSV(result.eeg, result.emg, result.classification)}
+            >
+              <Download className="h-4 w-4" /> Baixar CSV
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

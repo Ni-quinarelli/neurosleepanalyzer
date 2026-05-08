@@ -1,4 +1,5 @@
 import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import type { SignalMetrics, Classification } from "./signalAnalysis";
 import { classificationToBinary } from "./signalAnalysis";
 
@@ -44,9 +45,7 @@ export function exportPDF({
       const imgH = imgW * 0.45;
       doc.addImage(thumbnail, "JPEG", 40, y, imgW, imgH);
       y += imgH + 20;
-    } catch {
-      /* ignore image errors */
-    }
+    } catch { /* ignore */ }
   }
 
   const labelMap: Record<Classification, string> = {
@@ -107,4 +106,43 @@ export function exportPDF({
   });
 
   doc.save(`neurosleep_${Date.now()}.pdf`);
+}
+
+/**
+ * Capture a DOM element and save as a PDF (full-page screenshot style).
+ */
+export async function exportElementPDF(el: HTMLElement, baseName = "neurosleep") {
+  const canvas = await html2canvas(el, {
+    scale: 2,
+    backgroundColor: "#ffffff",
+    useCORS: true,
+    logging: false,
+  });
+  const imgData = canvas.toDataURL("image/jpeg", 0.92);
+  const pdf = new jsPDF({ unit: "pt", format: "a4", orientation: "portrait" });
+  const pageW = pdf.internal.pageSize.getWidth();
+  const pageH = pdf.internal.pageSize.getHeight();
+  const ratio = canvas.width / canvas.height;
+  const imgW = pageW - 40;
+  const imgH = imgW / ratio;
+
+  if (imgH <= pageH - 40) {
+    pdf.addImage(imgData, "JPEG", 20, 20, imgW, imgH);
+  } else {
+    // multi-page: slice the canvas
+    const sliceH = (pageH - 40) * (canvas.width / imgW);
+    let y = 0;
+    while (y < canvas.height) {
+      const remaining = Math.min(sliceH, canvas.height - y);
+      const tmp = document.createElement("canvas");
+      tmp.width = canvas.width;
+      tmp.height = remaining;
+      tmp.getContext("2d")!.drawImage(canvas, 0, y, canvas.width, remaining, 0, 0, canvas.width, remaining);
+      const slice = tmp.toDataURL("image/jpeg", 0.92);
+      if (y > 0) pdf.addPage();
+      pdf.addImage(slice, "JPEG", 20, 20, imgW, (remaining * imgW) / canvas.width);
+      y += remaining;
+    }
+  }
+  pdf.save(`${baseName}_${Date.now()}.pdf`);
 }

@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Activity, History, Info } from "lucide-react";
+import { Activity, Brain, History, Info, Sparkles, Home } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -14,7 +14,10 @@ import {
 } from "@/components/ui/sidebar";
 
 const items = [
-  { title: "Nova Análise", url: "/", icon: Activity },
+  { title: "Início", url: "/", icon: Home },
+  { title: "Análise EEG/EMG", url: "/eeg-emg", icon: Activity },
+  { title: "Análise ECoG", url: "/ecog", icon: Brain },
+  { title: "Assistente IA", url: "/assistant", icon: Sparkles },
   { title: "Histórico", url: "/history", icon: History },
   { title: "Sobre", url: "/about", icon: Info },
 ];
@@ -31,7 +34,7 @@ export function AppSidebar() {
       <SidebarHeader className="border-b border-sidebar-border p-4">
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <Activity className="h-4 w-4" />
+            <Brain className="h-4 w-4" />
           </div>
           {!collapsed && (
             <div className="leading-tight">

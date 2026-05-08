@@ -1,210 +1,79 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { Download, FileText } from "lucide-react";
-import { fileToThumbnail, saveEntry } from "@/utils/history";
-import { exportPDF } from "@/utils/pdfExport";
-import { UploadZone } from "@/components/UploadZone";
-import { SignalChart } from "@/components/SignalChart";
-import { MetricsTable } from "@/components/MetricsTable";
-import { ClassificationBadge } from "@/components/ClassificationBadge";
-import { ParameterPanel } from "@/components/ParameterPanel";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Activity, Brain, Sparkles, History, ArrowRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { extractSignalsFromImage, type ExtractedSignals } from "@/utils/imageProcessor";
-import {
-  classify,
-  classificationToBinary,
-  computeMetrics,
-  defaultThresholds,
-  type Thresholds,
-} from "@/utils/signalAnalysis";
-import { exportCSV } from "@/utils/csvExport";
 
 export const Route = createFileRoute("/")({
-  component: Index,
+  component: Home,
   head: () => ({
     meta: [
       { title: "NeuroSleep Analytica" },
       {
         name: "description",
         content:
-          "Analise imagens de EEG e EMG: variância, amplitude, picos e classificação automática do estado de sono.",
+          "Análise de sinais EEG, EMG e ECoG com identificação de padrões de memória traumática.",
       },
     ],
   }),
 });
 
-function Index() {
-  const [imageURL, setImageURL] = useState<string | null>(null);
-  const [signals, setSignals] = useState<ExtractedSignals | null>(null);
-  const [warning, setWarning] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [thresholds, setThresholds] = useState<Thresholds>(defaultThresholds);
-  const [thumbnail, setThumbnail] = useState<string | null>(null);
-  const [filename, setFilename] = useState<string | null>(null);
-  const [savedId, setSavedId] = useState<string | null>(null);
+const tiles = [
+  {
+    to: "/eeg-emg",
+    title: "Análise EEG/EMG",
+    desc: "Anexe imagens separadas de EEG e EMG para classificar o estado de sono.",
+    icon: Activity,
+  },
+  {
+    to: "/ecog",
+    title: "Análise ECoG",
+    desc: "Padrões de memória traumática e escala de referência CMC.",
+    icon: Brain,
+  },
+  {
+    to: "/assistant",
+    title: "Assistente IA",
+    desc: "Explica em linguagem simples seus dados neurofisiológicos do sono.",
+    icon: Sparkles,
+  },
+  {
+    to: "/history",
+    title: "Histórico",
+    desc: "Análises anteriores com gráficos comparativos.",
+    icon: History,
+  },
+] as const;
 
-  useEffect(() => () => { if (imageURL) URL.revokeObjectURL(imageURL); }, [imageURL]);
-
-  const handleFile = async (file: File) => {
-    setBusy(true);
-    setWarning(null);
-    setSavedId(null);
-    if (imageURL) URL.revokeObjectURL(imageURL);
-    setImageURL(URL.createObjectURL(file));
-    setFilename(file.name);
-    try {
-      const [res, thumb] = await Promise.all([
-        extractSignalsFromImage(file),
-        fileToThumbnail(file),
-      ]);
-      setSignals(res);
-      setThumbnail(thumb);
-      const eegRange = Math.max(...res.eeg) - Math.min(...res.eeg);
-      if (eegRange < 0.05) setWarning("A imagem parece uniforme — a extração pode ser pouco confiável.");
-    } catch {
-      setWarning("Falha ao processar a imagem.");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const result = useMemo(() => {
-    if (!signals) return null;
-    const eeg = computeMetrics(signals.eeg, thresholds.peakSensitivity);
-    const emg = computeMetrics(signals.emg, thresholds.peakSensitivity);
-    const c = classify(eeg, emg, thresholds);
-    return { eeg, emg, classification: c, binary: classificationToBinary(c) };
-  }, [signals, thresholds]);
-
-  // Save to history once when a new analysis result is ready
-  useEffect(() => {
-    if (!result || !thumbnail || !filename || savedId) return;
-    const id = `${Date.now()}`;
-    saveEntry({
-      id,
-      date: new Date().toISOString(),
-      filename,
-      thumbnail,
-      eeg: result.eeg,
-      emg: result.emg,
-      classification: result.classification,
-    });
-    setSavedId(id);
-  }, [result, thumbnail, filename, savedId]);
-
+function Home() {
   return (
-    <div className="min-h-screen bg-background">
-      <main className="mx-auto max-w-6xl space-y-6 px-6 py-8">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Nova Análise</h1>
-          <p className="text-sm text-muted-foreground">
-            Envie uma imagem de EEG/EMG para extrair os sinais e classificar o estado de sono.
-          </p>
-        </div>
-        {!signals && (
-          <div className="mx-auto max-w-2xl">
-            <UploadZone onFile={handleFile} />
-            <p className="mt-4 text-center text-xs text-muted-foreground">
-              Envie uma imagem no estilo polissonografia com EEG (em cima) e EMG (embaixo).
-            </p>
-          </div>
-        )}
-
-        {busy && (
-          <p className="text-center text-sm text-muted-foreground">Processando imagem…</p>
-        )}
-
-        {warning && (
-          <div className="rounded-md border border-orange-300 bg-orange-50 p-3 text-sm text-orange-900">
-            {warning}
-          </div>
-        )}
-
-        {signals && result && imageURL && (
-          <div className="animate-in fade-in space-y-6 duration-500">
-            <div className="grid gap-6 lg:grid-cols-2">
-              <Card className="overflow-hidden p-4">
-                <p className="mb-2 font-mono text-xs text-muted-foreground">Imagem original</p>
-                <img src={imageURL} alt="Sinal enviado" className="w-full rounded border border-border" />
-                <div className="mt-3">
-                  <UploadZone onFile={handleFile} />
-                </div>
-              </Card>
-
-              <Card className="space-y-4 p-4">
+    <div className="mx-auto max-w-5xl space-y-8 px-6 py-10">
+      <div className="space-y-2">
+        <h1 className="text-3xl font-semibold tracking-tight">NeuroSleep Analytica</h1>
+        <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          Plataforma de análise de imagens fisiológicas para estudos de sono. O{" "}
+          <strong>ECoG</strong> permite visualizar a atividade cortical envolvida na{" "}
+          formação e recuperação de memórias traumáticas, e o{" "}
+          <strong>CMC (Condicionamento de Medo ao Contexto)</strong> oferece a escala de
+          referência teórica para o comportamento associado.
+        </p>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        {tiles.map((t) => (
+          <Link key={t.to} to={t.to} className="group">
+            <Card className="flex h-full items-start gap-4 p-5 transition-colors group-hover:border-primary">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                <t.icon className="h-5 w-5" />
+              </div>
+              <div className="flex-1">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium">Classificação</p>
-                  <ClassificationBadge value={result.classification} />
+                  <h3 className="font-semibold">{t.title}</h3>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
                 </div>
-                <SignalChart data={signals.eeg} color="hsl(220 70% 45%)" label="EEG" />
-                <SignalChart data={signals.emg} color="hsl(15 70% 45%)" label="EMG" />
-              </Card>
-            </div>
-
-            <Card className="p-4">
-              <p className="mb-3 text-sm font-medium">Métricas do sinal</p>
-              <MetricsTable eeg={result.eeg} emg={result.emg} />
+                <p className="mt-1 text-sm text-muted-foreground">{t.desc}</p>
+              </div>
             </Card>
-
-            <Card className="p-4">
-              <p className="mb-3 text-sm font-medium">Saída binária</p>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="font-mono">Sono_ondas_lentas</TableHead>
-                    <TableHead className="font-mono">REM</TableHead>
-                    <TableHead className="font-mono">Vigilia</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow>
-                    <TableCell className="font-mono">{result.binary.Sono_ondas_lentas}</TableCell>
-                    <TableCell className="font-mono">{result.binary.REM}</TableCell>
-                    <TableCell className="font-mono">{result.binary.Vigilia}</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </Card>
-
-            <ParameterPanel thresholds={thresholds} onChange={setThresholds} />
-
-            <div className="flex flex-wrap justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() =>
-                  exportPDF({
-                    filename: filename ?? undefined,
-                    thumbnail: thumbnail ?? undefined,
-                    eeg: result.eeg,
-                    emg: result.emg,
-                    classification: result.classification,
-                  })
-                }
-                className="gap-2"
-              >
-                <FileText className="h-4 w-4" />
-                Baixar PDF
-              </Button>
-              <Button
-                onClick={() => exportCSV(result.eeg, result.emg, result.classification)}
-                className="gap-2"
-              >
-                <Download className="h-4 w-4" />
-                Baixar CSV
-              </Button>
-            </div>
-          </div>
-        )}
-      </main>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }

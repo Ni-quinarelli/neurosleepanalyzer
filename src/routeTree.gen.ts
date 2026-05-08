@@ -10,12 +10,30 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as HistoryRouteImport } from './routes/history'
+import { Route as EegEmgRouteImport } from './routes/eeg-emg'
+import { Route as EcogRouteImport } from './routes/ecog'
+import { Route as AssistantRouteImport } from './routes/assistant'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
 const HistoryRoute = HistoryRouteImport.update({
   id: '/history',
   path: '/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EegEmgRoute = EegEmgRouteImport.update({
+  id: '/eeg-emg',
+  path: '/eeg-emg',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcogRoute = EcogRouteImport.update({
+  id: '/ecog',
+  path: '/ecog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AssistantRoute = AssistantRouteImport.update({
+  id: '/assistant',
+  path: '/assistant',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -32,30 +50,49 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/assistant': typeof AssistantRoute
+  '/ecog': typeof EcogRoute
+  '/eeg-emg': typeof EegEmgRoute
   '/history': typeof HistoryRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/assistant': typeof AssistantRoute
+  '/ecog': typeof EcogRoute
+  '/eeg-emg': typeof EegEmgRoute
   '/history': typeof HistoryRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/assistant': typeof AssistantRoute
+  '/ecog': typeof EcogRoute
+  '/eeg-emg': typeof EegEmgRoute
   '/history': typeof HistoryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/history'
+  fullPaths: '/' | '/about' | '/assistant' | '/ecog' | '/eeg-emg' | '/history'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/history'
-  id: '__root__' | '/' | '/about' | '/history'
+  to: '/' | '/about' | '/assistant' | '/ecog' | '/eeg-emg' | '/history'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/assistant'
+    | '/ecog'
+    | '/eeg-emg'
+    | '/history'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AssistantRoute: typeof AssistantRoute
+  EcogRoute: typeof EcogRoute
+  EegEmgRoute: typeof EegEmgRoute
   HistoryRoute: typeof HistoryRoute
 }
 
@@ -66,6 +103,27 @@ declare module '@tanstack/react-router' {
       path: '/history'
       fullPath: '/history'
       preLoaderRoute: typeof HistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/eeg-emg': {
+      id: '/eeg-emg'
+      path: '/eeg-emg'
+      fullPath: '/eeg-emg'
+      preLoaderRoute: typeof EegEmgRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecog': {
+      id: '/ecog'
+      path: '/ecog'
+      fullPath: '/ecog'
+      preLoaderRoute: typeof EcogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/assistant': {
+      id: '/assistant'
+      path: '/assistant'
+      fullPath: '/assistant'
+      preLoaderRoute: typeof AssistantRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -88,6 +146,9 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AssistantRoute: AssistantRoute,
+  EcogRoute: EcogRoute,
+  EegEmgRoute: EegEmgRoute,
   HistoryRoute: HistoryRoute,
 }
 export const routeTree = rootRouteImport
