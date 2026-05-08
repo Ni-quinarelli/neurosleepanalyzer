@@ -25,16 +25,16 @@ export function exportPDF({
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
-  doc.text("NeuroSleep Analytica — Report", 40, y);
+  doc.text("NeuroSleep Analytica — Relatório", 40, y);
   y += 22;
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
   doc.setTextColor(110);
-  doc.text(`Generated: ${date || new Date().toLocaleString()}`, 40, y);
+  doc.text(`Gerado em: ${date || new Date().toLocaleString("pt-BR")}`, 40, y);
   if (filename) {
     y += 14;
-    doc.text(`Source: ${filename}`, 40, y);
+    doc.text(`Arquivo: ${filename}`, 40, y);
   }
   y += 24;
 
@@ -49,25 +49,31 @@ export function exportPDF({
     }
   }
 
+  const labelMap: Record<Classification, string> = {
+    "Slow-Wave Sleep": "Sono de Ondas Lentas",
+    REM: "Sono REM",
+    Wakefulness: "Vigília",
+  };
+
   doc.setTextColor(0);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(13);
-  doc.text("Classification", 40, y);
+  doc.text("Classificação", 40, y);
   y += 18;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(12);
-  doc.text(classification, 40, y);
+  doc.text(labelMap[classification], 40, y);
   y += 24;
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(13);
-  doc.text("Signal metrics", 40, y);
+  doc.text("Métricas do sinal", 40, y);
   y += 18;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(11);
 
   const rows: [string, string, string, string][] = [
-    ["Signal", "Variance", "Mean Amplitude", "Peak Count"],
+    ["Sinal", "Variância", "Amplitude Média", "Picos"],
     ["EEG", eeg.variance.toFixed(4), eeg.meanAmplitude.toFixed(4), String(eeg.peakCount)],
     ["EMG", emg.variance.toFixed(4), emg.meanAmplitude.toFixed(4), String(emg.peakCount)],
   ];
@@ -84,7 +90,7 @@ export function exportPDF({
   y += 14;
   doc.setFont("helvetica", "bold");
   doc.setFontSize(13);
-  doc.text("Binary output", 40, y);
+  doc.text("Saída binária", 40, y);
   y += 18;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(11);
