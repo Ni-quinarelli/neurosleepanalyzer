@@ -48,17 +48,26 @@ function Index() {
   const [warning, setWarning] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [thresholds, setThresholds] = useState<Thresholds>(defaultThresholds);
+  const [thumbnail, setThumbnail] = useState<string | null>(null);
+  const [filename, setFilename] = useState<string | null>(null);
+  const [savedId, setSavedId] = useState<string | null>(null);
 
   useEffect(() => () => { if (imageURL) URL.revokeObjectURL(imageURL); }, [imageURL]);
 
   const handleFile = async (file: File) => {
     setBusy(true);
     setWarning(null);
+    setSavedId(null);
     if (imageURL) URL.revokeObjectURL(imageURL);
     setImageURL(URL.createObjectURL(file));
+    setFilename(file.name);
     try {
-      const res = await extractSignalsFromImage(file);
+      const [res, thumb] = await Promise.all([
+        extractSignalsFromImage(file),
+        fileToThumbnail(file),
+      ]);
       setSignals(res);
+      setThumbnail(thumb);
       const eegRange = Math.max(...res.eeg) - Math.min(...res.eeg);
       if (eegRange < 0.05) setWarning("Image appears uniform — extraction may be unreliable.");
     } catch {
