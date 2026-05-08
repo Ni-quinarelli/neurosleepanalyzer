@@ -177,7 +177,23 @@ function Index() {
 
             <ParameterPanel thresholds={thresholds} onChange={setThresholds} />
 
-            <div className="flex justify-end">
+            <div className="flex flex-wrap justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() =>
+                  exportPDF({
+                    filename: filename ?? undefined,
+                    thumbnail: thumbnail ?? undefined,
+                    eeg: result.eeg,
+                    emg: result.emg,
+                    classification: result.classification,
+                  })
+                }
+                className="gap-2"
+              >
+                <FileText className="h-4 w-4" />
+                Download PDF
+              </Button>
               <Button
                 onClick={() => exportCSV(result.eeg, result.emg, result.classification)}
                 className="gap-2"
