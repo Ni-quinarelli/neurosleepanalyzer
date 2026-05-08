@@ -32,11 +32,11 @@ export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
     meta: [
-      { title: "Sleep Signal Analyzer" },
+      { title: "NeuroSleep Analytica" },
       {
         name: "description",
         content:
-          "Analyze EEG and EMG sleep signal images: variance, amplitude, peaks, and automatic classification.",
+          "Analise imagens de EEG e EMG: variância, amplitude, picos e classificação automática do estado de sono.",
       },
     ],
   }),
@@ -69,9 +69,9 @@ function Index() {
       setSignals(res);
       setThumbnail(thumb);
       const eegRange = Math.max(...res.eeg) - Math.min(...res.eeg);
-      if (eegRange < 0.05) setWarning("Image appears uniform — extraction may be unreliable.");
+      if (eegRange < 0.05) setWarning("A imagem parece uniforme — a extração pode ser pouco confiável.");
     } catch {
-      setWarning("Failed to process image.");
+      setWarning("Falha ao processar a imagem.");
     } finally {
       setBusy(false);
     }
@@ -105,22 +105,22 @@ function Index() {
     <div className="min-h-screen bg-background">
       <main className="mx-auto max-w-6xl space-y-6 px-6 py-8">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">New Analysis</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Nova Análise</h1>
           <p className="text-sm text-muted-foreground">
-            Upload an EEG/EMG image to extract signals and classify the sleep state.
+            Envie uma imagem de EEG/EMG para extrair os sinais e classificar o estado de sono.
           </p>
         </div>
         {!signals && (
           <div className="mx-auto max-w-2xl">
             <UploadZone onFile={handleFile} />
             <p className="mt-4 text-center text-xs text-muted-foreground">
-              Upload a polysomnography-style image with EEG (top) and EMG (bottom).
+              Envie uma imagem no estilo polissonografia com EEG (em cima) e EMG (embaixo).
             </p>
           </div>
         )}
 
         {busy && (
-          <p className="text-center text-sm text-muted-foreground">Processing image…</p>
+          <p className="text-center text-sm text-muted-foreground">Processando imagem…</p>
         )}
 
         {warning && (
@@ -133,8 +133,8 @@ function Index() {
           <div className="animate-in fade-in space-y-6 duration-500">
             <div className="grid gap-6 lg:grid-cols-2">
               <Card className="overflow-hidden p-4">
-                <p className="mb-2 font-mono text-xs text-muted-foreground">Original image</p>
-                <img src={imageURL} alt="Uploaded signal" className="w-full rounded border border-border" />
+                <p className="mb-2 font-mono text-xs text-muted-foreground">Imagem original</p>
+                <img src={imageURL} alt="Sinal enviado" className="w-full rounded border border-border" />
                 <div className="mt-3">
                   <UploadZone onFile={handleFile} />
                 </div>
@@ -142,7 +142,7 @@ function Index() {
 
               <Card className="space-y-4 p-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium">Classification</p>
+                  <p className="text-sm font-medium">Classificação</p>
                   <ClassificationBadge value={result.classification} />
                 </div>
                 <SignalChart data={signals.eeg} color="hsl(220 70% 45%)" label="EEG" />
@@ -151,12 +151,12 @@ function Index() {
             </div>
 
             <Card className="p-4">
-              <p className="mb-3 text-sm font-medium">Signal metrics</p>
+              <p className="mb-3 text-sm font-medium">Métricas do sinal</p>
               <MetricsTable eeg={result.eeg} emg={result.emg} />
             </Card>
 
             <Card className="p-4">
-              <p className="mb-3 text-sm font-medium">Binary output</p>
+              <p className="mb-3 text-sm font-medium">Saída binária</p>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -192,14 +192,14 @@ function Index() {
                 className="gap-2"
               >
                 <FileText className="h-4 w-4" />
-                Download PDF
+                Baixar PDF
               </Button>
               <Button
                 onClick={() => exportCSV(result.eeg, result.emg, result.classification)}
                 className="gap-2"
               >
                 <Download className="h-4 w-4" />
-                Download CSV
+                Baixar CSV
               </Button>
             </div>
           </div>

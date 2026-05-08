@@ -23,14 +23,14 @@ export function ParameterPanel({ thresholds, onChange }: Props) {
         <Button variant="ghost" className="flex w-full items-center justify-between p-4">
           <span className="flex items-center gap-2 text-sm font-medium">
             <Settings2 className="h-4 w-4" />
-            Adjust thresholds
+            Ajustar limiares
           </span>
           <ChevronDown className="h-4 w-4" />
         </Button>
       </CollapsibleTrigger>
       <CollapsibleContent className="space-y-5 px-4 pb-4">
         <Field
-          label="EEG variance threshold"
+          label="Limiar de variância EEG"
           value={thresholds.eegVariance}
           min={0.005}
           max={0.1}
@@ -38,7 +38,7 @@ export function ParameterPanel({ thresholds, onChange }: Props) {
           onChange={(v) => set("eegVariance", v)}
         />
         <Field
-          label="EMG amplitude threshold"
+          label="Limiar de amplitude EMG"
           value={thresholds.emgAmplitude}
           min={0.05}
           max={0.4}
@@ -46,7 +46,7 @@ export function ParameterPanel({ thresholds, onChange }: Props) {
           onChange={(v) => set("emgAmplitude", v)}
         />
         <Field
-          label="Peak detection sensitivity"
+          label="Sensibilidade de detecção de picos"
           value={thresholds.peakSensitivity}
           min={0.01}
           max={0.2}

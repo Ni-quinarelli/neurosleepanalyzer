@@ -14,9 +14,9 @@ import {
 } from "@/components/ui/sidebar";
 
 const items = [
-  { title: "New Analysis", url: "/", icon: Activity },
-  { title: "History", url: "/history", icon: History },
-  { title: "About", url: "/about", icon: Info },
+  { title: "Nova Análise", url: "/", icon: Activity },
+  { title: "Histórico", url: "/history", icon: History },
+  { title: "Sobre", url: "/about", icon: Info },
 ];
 
 export function AppSidebar() {
@@ -43,7 +43,7 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+          <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
