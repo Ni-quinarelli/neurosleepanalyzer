@@ -19,10 +19,10 @@ export function MetricsTable({ eeg, emg }: Props) {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Signal</TableHead>
-          <TableHead className="font-mono">Variance</TableHead>
-          <TableHead className="font-mono">Mean Amplitude</TableHead>
-          <TableHead className="font-mono">Peak Count</TableHead>
+          <TableHead>Sinal</TableHead>
+          <TableHead className="font-mono">Variância</TableHead>
+          <TableHead className="font-mono">Amplitude Média</TableHead>
+          <TableHead className="font-mono">Picos</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>

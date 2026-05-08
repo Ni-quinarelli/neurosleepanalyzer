@@ -35,11 +35,11 @@ export function UploadZone({ onFile }: Props) {
     >
       <Upload className="mb-4 h-10 w-10 text-muted-foreground" />
       <p className="mb-2 text-sm font-medium text-foreground">
-        Drag & drop a signal image here
+        Arraste uma imagem do sinal aqui
       </p>
-      <p className="mb-4 text-xs text-muted-foreground">PNG or JPG</p>
+      <p className="mb-4 text-xs text-muted-foreground">PNG ou JPG</p>
       <Button onClick={() => inputRef.current?.click()} variant="default">
-        Choose file
+        Escolher arquivo
       </Button>
       <input
         ref={inputRef}
