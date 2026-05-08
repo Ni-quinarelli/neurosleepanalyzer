@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Activity, Download } from "lucide-react";
+import { Download, FileText } from "lucide-react";
+import { fileToThumbnail, saveEntry } from "@/utils/history";
+import { exportPDF } from "@/utils/pdfExport";
 import { UploadZone } from "@/components/UploadZone";
 import { SignalChart } from "@/components/SignalChart";
 import { MetricsTable } from "@/components/MetricsTable";
@@ -46,17 +48,26 @@ function Index() {
   const [warning, setWarning] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [thresholds, setThresholds] = useState<Thresholds>(defaultThresholds);
+  const [thumbnail, setThumbnail] = useState<string | null>(null);
+  const [filename, setFilename] = useState<string | null>(null);
+  const [savedId, setSavedId] = useState<string | null>(null);
 
   useEffect(() => () => { if (imageURL) URL.revokeObjectURL(imageURL); }, [imageURL]);
 
   const handleFile = async (file: File) => {
     setBusy(true);
     setWarning(null);
+    setSavedId(null);
     if (imageURL) URL.revokeObjectURL(imageURL);
     setImageURL(URL.createObjectURL(file));
+    setFilename(file.name);
     try {
-      const res = await extractSignalsFromImage(file);
+      const [res, thumb] = await Promise.all([
+        extractSignalsFromImage(file),
+        fileToThumbnail(file),
+      ]);
       setSignals(res);
+      setThumbnail(thumb);
       const eegRange = Math.max(...res.eeg) - Math.min(...res.eeg);
       if (eegRange < 0.05) setWarning("Image appears uniform — extraction may be unreliable.");
     } catch {
@@ -74,16 +85,31 @@ function Index() {
     return { eeg, emg, classification: c, binary: classificationToBinary(c) };
   }, [signals, thresholds]);
 
+  // Save to history once when a new analysis result is ready
+  useEffect(() => {
+    if (!result || !thumbnail || !filename || savedId) return;
+    const id = `${Date.now()}`;
+    saveEntry({
+      id,
+      date: new Date().toISOString(),
+      filename,
+      thumbnail,
+      eeg: result.eeg,
+      emg: result.emg,
+      classification: result.classification,
+    });
+    setSavedId(id);
+  }, [result, thumbnail, filename, savedId]);
+
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card">
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-6 py-4">
-          <Activity className="h-5 w-5 text-primary" />
-          <h1 className="text-lg font-semibold tracking-tight">Sleep Signal Analyzer</h1>
-        </div>
-      </header>
-
       <main className="mx-auto max-w-6xl space-y-6 px-6 py-8">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">New Analysis</h1>
+          <p className="text-sm text-muted-foreground">
+            Upload an EEG/EMG image to extract signals and classify the sleep state.
+          </p>
+        </div>
         {!signals && (
           <div className="mx-auto max-w-2xl">
             <UploadZone onFile={handleFile} />
@@ -151,7 +177,23 @@ function Index() {
 
             <ParameterPanel thresholds={thresholds} onChange={setThresholds} />
 
-            <div className="flex justify-end">
+            <div className="flex flex-wrap justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() =>
+                  exportPDF({
+                    filename: filename ?? undefined,
+                    thumbnail: thumbnail ?? undefined,
+                    eeg: result.eeg,
+                    emg: result.emg,
+                    classification: result.classification,
+                  })
+                }
+                className="gap-2"
+              >
+                <FileText className="h-4 w-4" />
+                Download PDF
+              </Button>
               <Button
                 onClick={() => exportCSV(result.eeg, result.emg, result.classification)}
                 className="gap-2"
