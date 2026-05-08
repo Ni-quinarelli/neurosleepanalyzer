@@ -1,16 +1,32 @@
-import type { SignalMetrics, Classification } from "@/utils/signalAnalysis";
+import type { SignalMetrics, Classification, ECoGAnalysis } from "@/utils/signalAnalysis";
 
-export interface HistoryEntry {
+export type AnalysisType = "eeg-emg" | "ecog";
+
+interface BaseEntry {
   id: string;
   date: string;
+  type: AnalysisType;
   filename: string;
-  thumbnail: string; // data URL
+  thumbnail: string;
+}
+
+export interface EEGEMGEntry extends BaseEntry {
+  type: "eeg-emg";
   eeg: SignalMetrics;
   emg: SignalMetrics;
   classification: Classification;
 }
 
-const KEY = "neurosleep_history_v1";
+export interface ECoGEntry extends BaseEntry {
+  type: "ecog";
+  thumbnail2?: string;
+  channelA: ECoGAnalysis;
+  channelB?: ECoGAnalysis;
+}
+
+export type HistoryEntry = EEGEMGEntry | ECoGEntry;
+
+const KEY = "neurosleep_history_v2";
 
 export function loadHistory(): HistoryEntry[] {
   if (typeof window === "undefined") return [];
@@ -24,9 +40,7 @@ export function loadHistory(): HistoryEntry[] {
 export function saveEntry(entry: HistoryEntry) {
   const list = loadHistory();
   list.unshift(entry);
-  // cap at 50 to avoid quota issues
-  const trimmed = list.slice(0, 50);
-  localStorage.setItem(KEY, JSON.stringify(trimmed));
+  localStorage.setItem(KEY, JSON.stringify(list.slice(0, 50)));
 }
 
 export function deleteEntry(id: string) {
