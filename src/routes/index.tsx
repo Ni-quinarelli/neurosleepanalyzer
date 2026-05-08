@@ -69,9 +69,9 @@ function Index() {
       setSignals(res);
       setThumbnail(thumb);
       const eegRange = Math.max(...res.eeg) - Math.min(...res.eeg);
-      if (eegRange < 0.05) setWarning("Image appears uniform — extraction may be unreliable.");
+      if (eegRange < 0.05) setWarning("A imagem parece uniforme — a extração pode ser pouco confiável.");
     } catch {
-      setWarning("Failed to process image.");
+      setWarning("Falha ao processar a imagem.");
     } finally {
       setBusy(false);
     }
