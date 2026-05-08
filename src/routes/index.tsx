@@ -32,11 +32,11 @@ export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
     meta: [
-      { title: "Sleep Signal Analyzer" },
+      { title: "NeuroSleep Analytica" },
       {
         name: "description",
         content:
-          "Analyze EEG and EMG sleep signal images: variance, amplitude, peaks, and automatic classification.",
+          "Analise imagens de EEG e EMG: variância, amplitude, picos e classificação automática do estado de sono.",
       },
     ],
   }),
