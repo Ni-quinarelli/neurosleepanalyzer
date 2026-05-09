@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Download, FileText, FileImage } from "lucide-react";
 import { SingleUpload } from "@/components/SingleUpload";
+import { PageHeader } from "@/components/PageHeader";
 import { SignalChart } from "@/components/SignalChart";
 import { MetricsTable } from "@/components/MetricsTable";
 import { ClassificationBadge } from "@/components/ClassificationBadge";
@@ -92,27 +93,30 @@ function Page() {
 
   return (
     <div ref={pageRef} className="mx-auto max-w-6xl space-y-6 px-6 py-8">
+      <PageHeader />
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Análise EEG/EMG</h1>
         <p className="text-sm text-muted-foreground">
-          Anexe a imagem do EEG e do EMG separadamente. A classificação do estado de sono será calculada automaticamente.
+          Faça upload de uma imagem de <strong>EEG</strong> e uma de <strong>EMG</strong> separadamente para análise automática do estágio de sono.
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <SingleUpload
-          label="Imagem EEG"
+          label="EEG — Eletroencefalograma"
+          accent="blue"
           file={eegFile}
           preview={eegPreview}
           onFile={setEegFile}
-          hint="Traçado eletroencefalográfico"
+          hint="Traçado cortical"
         />
         <SingleUpload
-          label="Imagem EMG"
+          label="EMG — Eletromiograma"
+          accent="green"
           file={emgFile}
           preview={emgPreview}
           onFile={setEmgFile}
-          hint="Traçado eletromiográfico"
+          hint="Traçado muscular"
         />
       </div>
 
