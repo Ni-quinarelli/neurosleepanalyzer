@@ -65,8 +65,8 @@ function Page() {
 
   const result = useMemo(() => {
     if (!eegSignal || !emgSignal) return null;
-    const eeg = computeMetrics(eegSignal, thresholds.peakSensitivity);
-    const emg = computeMetrics(emgSignal, thresholds.peakSensitivity);
+    const eeg = computeMetrics(eegSignal, thresholds.peakSensitivity, thresholds.epochDurationSec);
+    const emg = computeMetrics(emgSignal, thresholds.peakSensitivity, thresholds.epochDurationSec);
     const c = classify(eeg, emg, thresholds);
     return { eeg, emg, classification: c, binary: classificationToBinary(c) };
   }, [eegSignal, emgSignal, thresholds]);
