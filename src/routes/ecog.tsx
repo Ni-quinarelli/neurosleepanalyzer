@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Download, FileImage, Brain } from "lucide-react";
 import { SingleUpload } from "@/components/SingleUpload";
+import { PageHeader } from "@/components/PageHeader";
 import { SignalChart } from "@/components/SignalChart";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -77,6 +78,7 @@ function Page() {
 
   return (
     <div ref={pageRef} className="mx-auto max-w-6xl space-y-6 px-6 py-8">
+      <PageHeader />
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Análise ECoG</h1>
         <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
@@ -91,6 +93,7 @@ function Page() {
       <div className="grid gap-4 md:grid-cols-2">
         <SingleUpload
           label="ECoG — Canal A"
+          accent="purple"
           file={fileA}
           preview={previewA}
           onFile={setFileA}
@@ -98,6 +101,7 @@ function Page() {
         />
         <SingleUpload
           label="ECoG — Canal B (opcional)"
+          accent="teal"
           file={fileB}
           preview={previewB}
           onFile={setFileB}
