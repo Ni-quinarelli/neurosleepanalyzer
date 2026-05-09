@@ -74,12 +74,15 @@ export function SingleUpload({ label, file, preview, onFile, hint, accent = "def
         </div>
       ) : (
         <>
-          <Upload className="mb-2 h-7 w-7 text-muted-foreground" />
-          <p className="mb-1 text-xs text-muted-foreground">Arraste ou selecione</p>
+          <div className={`mb-3 flex h-12 w-12 items-center justify-center rounded-lg ${a.iconBg}`}>
+            <Upload className="h-6 w-6" />
+          </div>
+          <p className="mb-1 text-sm font-medium">Arraste ou clique</p>
+          <p className="mb-3 text-[11px] text-muted-foreground">PNG / JPG</p>
           {hint && (
             <p className="mb-3 text-center text-[10px] text-muted-foreground">{hint}</p>
           )}
-          <Button size="sm" onClick={() => inputRef.current?.click()}>
+          <Button size="sm" variant="outline" onClick={() => inputRef.current?.click()}>
             Escolher arquivo
           </Button>
         </>
