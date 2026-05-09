@@ -23,27 +23,44 @@ export function ParameterPanel({ thresholds, onChange }: Props) {
         <Button variant="ghost" className="flex w-full items-center justify-between p-4">
           <span className="flex items-center gap-2 text-sm font-medium">
             <Settings2 className="h-4 w-4" />
-            Ajustar limiares
+            Calibração e limiares
           </span>
           <ChevronDown className="h-4 w-4" />
         </Button>
       </CollapsibleTrigger>
       <CollapsibleContent className="space-y-5 px-4 pb-4">
         <Field
-          label="Limiar de variância EEG"
-          value={thresholds.eegVariance}
-          min={0.005}
-          max={0.1}
-          step={0.001}
-          onChange={(v) => set("eegVariance", v)}
+          label="Janela temporal da imagem (segundos)"
+          value={thresholds.epochDurationSec}
+          min={1}
+          max={60}
+          step={0.5}
+          onChange={(v) => set("epochDurationSec", v)}
+          hint="Quantos segundos a imagem representa. Padrão = 10s (epoch de polissonografia). Calibração crítica para frequências em Hz."
         />
         <Field
-          label="Limiar de amplitude EMG"
-          value={thresholds.emgAmplitude}
-          min={0.05}
-          max={0.4}
-          step={0.005}
-          onChange={(v) => set("emgAmplitude", v)}
+          label="Limiar de atividade muscular EMG (vigília)"
+          value={thresholds.emgActivityThreshold}
+          min={0.1}
+          max={0.7}
+          step={0.01}
+          onChange={(v) => set("emgActivityThreshold", v)}
+        />
+        <Field
+          label="Dominância delta para SWS"
+          value={thresholds.deltaDominanceThreshold}
+          min={0.2}
+          max={0.7}
+          step={0.01}
+          onChange={(v) => set("deltaDominanceThreshold", v)}
+        />
+        <Field
+          label="Dominância theta para REM"
+          value={thresholds.thetaDominanceThreshold}
+          min={0.15}
+          max={0.6}
+          step={0.01}
+          onChange={(v) => set("thetaDominanceThreshold", v)}
         />
         <Field
           label="Sensibilidade de detecção de picos"
@@ -59,26 +76,18 @@ export function ParameterPanel({ thresholds, onChange }: Props) {
 }
 
 function Field({
-  label,
-  value,
-  min,
-  max,
-  step,
-  onChange,
+  label, value, min, max, step, onChange, hint,
 }: {
-  label: string;
-  value: number;
-  min: number;
-  max: number;
-  step: number;
-  onChange: (v: number) => void;
+  label: string; value: number; min: number; max: number; step: number;
+  onChange: (v: number) => void; hint?: string;
 }) {
   return (
     <div>
-      <div className="mb-2 flex justify-between text-xs">
+      <div className="mb-1 flex justify-between text-xs">
         <span className="text-foreground">{label}</span>
         <span className="font-mono text-muted-foreground">{value.toFixed(3)}</span>
       </div>
+      {hint && <p className="mb-2 text-[10px] text-muted-foreground">{hint}</p>}
       <Slider
         value={[value]}
         min={min}
