@@ -61,11 +61,30 @@ interface DerivedRow {
   fusos: number;
   cmcPhase: string;
   thetaPct: number;
+  // metadata
+  subject: string;
+  group: string;
+  collectedAt: string;
+  epoch: string;
+  samplingRate: string;
+  // ECOG PS
+  ecogGrade: number;
+  ecogLabel: string;
 }
 
 function derive(e: HistoryEntry): DerivedRow {
+  const meta = e.meta;
+  const baseMeta = {
+    subject: meta?.subject || "—",
+    group: meta?.group || "—",
+    collectedAt: meta?.collectedAt || "—",
+    epoch: meta?.epoch || "—",
+    samplingRate: meta?.samplingRate || "—",
+  };
+
   if (e.type === "eeg-emg") {
     const r = e.eeg.relativeBandPowers;
+    const t = buildFromEEGEMG(e.eeg, e.emg, e.classification);
     return {
       id: e.id,
       filename: e.filename,
@@ -80,8 +99,45 @@ function derive(e: HistoryEntry): DerivedRow {
       fusos: Math.round((r.beta * 100) / 5),
       cmcPhase: cmcFromClassification(e.classification),
       thetaPct: Math.round(r.theta * 100),
+      ...baseMeta,
+      ecogGrade: t.ecogPS.grade,
+      ecogLabel: t.ecogPS.label,
     };
   }
+  const m = e.channelA.metrics;
+  const r = m.relativeBandPowers;
+  const t = buildFromECoG(e.channelA);
+  return {
+    id: e.id,
+    filename: e.filename,
+    type: e.type,
+    classificationLabel: e.channelA.memoryPattern,
+    eegVar: m.variance,
+    emgVar: e.channelB?.metrics.variance ?? 0,
+    consIndex: Math.round(e.channelA.consolidationScore * 100),
+    swr: Math.round(e.channelA.burstDensity / 2),
+    fusos: Math.round((r.beta * 100) / 5),
+    cmcPhase: cmcFromMemory(e.channelA.memoryPattern),
+    thetaPct: Math.round(r.theta * 100),
+    ...baseMeta,
+    ecogGrade: t.ecogPS.grade,
+    ecogLabel: t.ecogPS.label,
+  };
+}
+
+function fmtCollectedAt(s: string) {
+  if (!s || s === "—") return "—";
+  const d = new Date(s);
+  if (isNaN(d.getTime())) return s;
+  return d.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+}
+
+function ecogBadgeClass(grade: number) {
+  if (grade <= 1) return "border-emerald-300 bg-emerald-50 text-emerald-800";
+  if (grade === 2) return "border-amber-300 bg-amber-50 text-amber-800";
+  if (grade === 3) return "border-orange-300 bg-orange-50 text-orange-800";
+  return "border-red-300 bg-red-50 text-red-800";
+}
   const m = e.channelA.metrics;
   const r = m.relativeBandPowers;
   return {
