@@ -21,6 +21,7 @@ import {
 import { exportCSV } from "@/utils/csvExport";
 import { exportElementPDF, exportPDF } from "@/utils/pdfExport";
 import { saveEntry } from "@/utils/history";
+import { TraumaPatternsCard, buildFromEEGEMG } from "@/components/TraumaPatternsCard";
 
 export const Route = createFileRoute("/eeg-emg")({
   component: Page,
