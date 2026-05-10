@@ -342,6 +342,11 @@ function HistoryPage() {
                 <TableRow>
                   <TableHead>Arquivo</TableHead>
                   <TableHead>Fonte</TableHead>
+                  <TableHead>Sujeito</TableHead>
+                  <TableHead>Grupo</TableHead>
+                  <TableHead>Coleta</TableHead>
+                  <TableHead>Época</TableHead>
+                  <TableHead>Fs (Hz)</TableHead>
                   <TableHead>Classificação</TableHead>
                   <TableHead>EEG Var.</TableHead>
                   <TableHead>EMG Var.</TableHead>
@@ -349,6 +354,7 @@ function HistoryPage() {
                   <TableHead>SWR</TableHead>
                   <TableHead>Fusos</TableHead>
                   <TableHead>CMC Fase</TableHead>
+                  <TableHead>ECOG PS</TableHead>
                   <TableHead className="text-right"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -367,6 +373,11 @@ function HistoryPage() {
                         </span>
                       )}
                     </TableCell>
+                    <TableCell className="text-xs">{r.subject}</TableCell>
+                    <TableCell className="text-xs">{r.group}</TableCell>
+                    <TableCell className="text-xs whitespace-nowrap">{fmtCollectedAt(r.collectedAt)}</TableCell>
+                    <TableCell className="text-xs">{r.epoch}</TableCell>
+                    <TableCell className="font-mono text-xs">{r.samplingRate}</TableCell>
                     <TableCell>
                       <span className="inline-flex rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-800">
                         {r.classificationLabel}
@@ -378,6 +389,14 @@ function HistoryPage() {
                     <TableCell className="font-mono text-xs">{r.swr}</TableCell>
                     <TableCell className="font-mono text-xs">{r.fusos}</TableCell>
                     <TableCell className="text-xs">{r.cmcPhase}</TableCell>
+                    <TableCell>
+                      <span
+                        className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] font-medium ${ecogBadgeClass(r.ecogGrade)}`}
+                        title={r.ecogLabel}
+                      >
+                        PS {r.ecogGrade} · {r.ecogLabel}
+                      </span>
+                    </TableCell>
                     <TableCell className="text-right">
                       <Button size="sm" variant="ghost" className="h-7 px-2 text-destructive"
                         onClick={() => handleDelete(r.id)}>
