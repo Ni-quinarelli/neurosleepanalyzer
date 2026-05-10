@@ -15,6 +15,7 @@ import { analyzeECoG, type ECoGAnalysis } from "@/utils/signalAnalysis";
 import { exportECoGCSV } from "@/utils/csvExport";
 import { exportElementPDF } from "@/utils/pdfExport";
 import { saveEntry } from "@/utils/history";
+import { TraumaPatternsCard, buildFromECoG } from "@/components/TraumaPatternsCard";
 
 export const Route = createFileRoute("/ecog")({
   component: Page,
