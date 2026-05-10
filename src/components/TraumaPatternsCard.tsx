@@ -262,6 +262,7 @@ export function buildFromECoG(a: ECoGAnalysis): TraumaInput {
             ? "Padrão intermediário — resposta de freezing variável conforme estágio do paradigma."
             : "Padrão de baixa expressão de medo. Consolidação/extinção bem integrada.",
     },
+    ecogPS: deriveEcogPS(consolidationIndex, a.cmcFreezingEstimate, tone),
   };
 }
 
