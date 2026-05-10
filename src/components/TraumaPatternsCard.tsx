@@ -28,6 +28,56 @@ interface TraumaInput {
     probability: TraumaLevel;
     description: string;
   };
+  /** ECOG Performance Status (0–4) derivado automaticamente do padrão neurofisiológico. */
+  ecogPS: {
+    grade: number;
+    label: string;
+    description: string;
+    rationale: string;
+  };
+}
+
+const ECOG_PS_TABLE: { grade: number; label: string; description: string }[] = [
+  { grade: 0, label: "Totalmente ativo",   description: "Capaz de manter todas as atividades prévias, sem restrições." },
+  { grade: 1, label: "Restrição leve",     description: "Restrições para atividades extenuantes; capaz de trabalho leve / sedentário." },
+  { grade: 2, label: "Ambulante",          description: "Cuidados pessoais preservados; sem capacidade laboral; ativo > 50% do dia." },
+  { grade: 3, label: "Cuidados limitados", description: "Cuidados pessoais limitados; acamado/sentado > 50% do dia." },
+  { grade: 4, label: "Incapacitado",       description: "Totalmente incapacitado; sem autocuidado; confinado à cama/cadeira." },
+  { grade: 5, label: "Óbito",              description: "Morte." },
+];
+
+/**
+ * Estima o ECOG Performance Status (0–4) a partir do estado neurofisiológico.
+ * Premissa: melhor consolidação + menor freezing/hipervigilância → menor
+ * impacto funcional. Padrões inconclusivos elevam o grau por incerteza.
+ * Grau 5 nunca é atribuído automaticamente (requer constatação clínica).
+ */
+function deriveEcogPS(
+  consolidationIndex: number,   // 0..100
+  freezingPct: number,          // 0..100
+  tone: TraumaInput["phaseTone"],
+): TraumaInput["ecogPS"] {
+  const cons = Math.max(0, Math.min(100, consolidationIndex));
+  const freeze = Math.max(0, Math.min(100, freezingPct));
+  // 0 (ótimo) … 100 (péssimo)
+  let impact = 0.55 * (100 - cons) + 0.45 * freeze;
+  if (tone === "wake") impact += 10;     // hipervigilância pesa
+  if (tone === "unknown") impact += 15;  // incerteza pesa
+  impact = Math.max(0, Math.min(100, impact));
+
+  let grade: number;
+  if (impact < 18) grade = 0;
+  else if (impact < 36) grade = 1;
+  else if (impact < 55) grade = 2;
+  else if (impact < 75) grade = 3;
+  else grade = 4;
+
+  const row = ECOG_PS_TABLE[grade];
+  const rationale =
+    `Derivado de Índice de Consolidação ${cons} e Congelamento estimado ${freeze}% ` +
+    `(impacto funcional ${Math.round(impact)}/100, fase: ${tone}).`;
+
+  return { grade, label: row.label, description: row.description, rationale };
 }
 
 // ---------- builders ----------
