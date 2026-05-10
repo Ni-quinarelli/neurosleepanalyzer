@@ -28,7 +28,10 @@ export const Route = createFileRoute("/history")({
 });
 
 function fmtDate(iso: string) {
-  return new Date(iso).toLocaleString("pt-BR");
+  return new Date(iso).toLocaleString("pt-BR", {
+    day: "2-digit", month: "2-digit", year: "numeric",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+  });
 }
 
 function HistoryPage() {
@@ -165,7 +168,10 @@ function HistoryPage() {
                   <TableCell className="text-xs">{e.meta?.subject || "—"}</TableCell>
                   <TableCell className="text-xs">{e.meta?.group || "—"}</TableCell>
                   <TableCell className="whitespace-nowrap text-xs">
-                    {e.meta?.collectedAt ? new Date(e.meta.collectedAt).toLocaleString("pt-BR") : "—"}
+                    {e.meta?.collectedAt ? new Date(e.meta.collectedAt).toLocaleString("pt-BR", {
+                      day: "2-digit", month: "2-digit", year: "numeric",
+                      hour: "2-digit", minute: "2-digit", second: "2-digit",
+                    }) : "—"}
                   </TableCell>
                   <TableCell className="text-xs">{e.meta?.epoch || "—"}</TableCell>
                   <TableCell className="max-w-[180px] truncate text-xs" title={e.filename}>{e.filename}</TableCell>
