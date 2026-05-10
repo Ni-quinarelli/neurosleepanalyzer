@@ -125,6 +125,10 @@ function Page() {
         </Card>
       )}
 
+      {analysisA && (
+        <TraumaPatternsCard data={buildFromECoG(analysisA)} />
+      )}
+
       {analysisA && analysisB && (
         <Card className="p-4">
           <p className="mb-3 text-sm font-medium">Comparativo A vs B</p>
