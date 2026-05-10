@@ -21,6 +21,7 @@ export function exportPDF({
   emg,
   classification,
   date,
+  meta,
 }: PDFInput) {
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const pageW = doc.internal.pageSize.getWidth();
