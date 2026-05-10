@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { extractSingleSignal } from "@/utils/imageProcessor";
+import { loadSignal } from "@/utils/signalLoader";
 import {
   classify, classificationToBinary, computeMetrics,
   defaultThresholds, type Thresholds, type SignalMetrics,
