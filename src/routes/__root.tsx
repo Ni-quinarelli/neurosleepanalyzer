@@ -114,26 +114,29 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { AuthGate } from "@/components/AuthGate";
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
-      <SidebarProvider>
-        <div className="flex min-h-screen w-full bg-background">
-          <AppSidebar />
-          <div className="flex flex-1 flex-col">
-            <header className="flex h-12 items-center border-b border-border bg-card px-3">
-              <SidebarTrigger />
-              <span className="ml-3 text-sm font-medium">NeuroSleep Analytica</span>
-            </header>
-            <main className="flex-1">
-              <Outlet />
-            </main>
+      <AuthGate>
+        <SidebarProvider>
+          <div className="flex min-h-screen w-full bg-background">
+            <AppSidebar />
+            <div className="flex flex-1 flex-col">
+              <header className="flex h-12 items-center border-b border-border bg-card px-3">
+                <SidebarTrigger />
+                <span className="ml-3 text-sm font-medium">NeuroSleep Analytica</span>
+              </header>
+              <main className="flex-1">
+                <Outlet />
+              </main>
+            </div>
           </div>
-        </div>
-      </SidebarProvider>
+        </SidebarProvider>
+      </AuthGate>
     </QueryClientProvider>
   );
 }

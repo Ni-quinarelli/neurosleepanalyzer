@@ -7,6 +7,7 @@ import { SignalChart } from "@/components/SignalChart";
 import { MetricsTable } from "@/components/MetricsTable";
 import { ClassificationBadge } from "@/components/ClassificationBadge";
 import { ParameterPanel } from "@/components/ParameterPanel";
+import { MetadataForm, emptyMeta, type RecordMeta } from "@/components/MetadataForm";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,7 +20,7 @@ import {
 } from "@/utils/signalAnalysis";
 import { exportCSV } from "@/utils/csvExport";
 import { exportElementPDF, exportPDF } from "@/utils/pdfExport";
-import { fileToThumbnail, saveEntry } from "@/utils/history";
+import { saveEntry } from "@/utils/history";
 
 export const Route = createFileRoute("/eeg-emg")({
   component: Page,
@@ -39,6 +40,7 @@ function Page() {
   const [eegSignal, setEegSignal] = useState<number[] | null>(null);
   const [emgSignal, setEmgSignal] = useState<number[] | null>(null);
   const [thresholds, setThresholds] = useState<Thresholds>(defaultThresholds);
+  const [meta, setMeta] = useState<RecordMeta>(emptyMeta);
   const [busy, setBusy] = useState(false);
   const [savedId, setSavedId] = useState<string | null>(null);
   const pageRef = useRef<HTMLDivElement>(null);
@@ -71,25 +73,21 @@ function Page() {
     return { eeg, emg, classification: c, binary: classificationToBinary(c) };
   }, [eegSignal, emgSignal, thresholds]);
 
-  // save once per pair
   useEffect(() => {
-    (async () => {
-      if (!result || !eegFile || savedId) return;
-      const thumb = await fileToThumbnail(eegFile);
-      const id = `${Date.now()}`;
-      saveEntry({
-        id,
-        date: new Date().toISOString(),
-        type: "eeg-emg",
-        filename: `${eegFile.name}${emgFile ? " + " + emgFile.name : ""}`,
-        thumbnail: thumb,
-        eeg: result.eeg as SignalMetrics,
-        emg: result.emg as SignalMetrics,
-        classification: result.classification,
-      });
-      setSavedId(id);
-    })();
-  }, [result, eegFile, emgFile, savedId]);
+    if (!result || !eegFile || savedId) return;
+    const id = `${Date.now()}`;
+    saveEntry({
+      id,
+      date: new Date().toISOString(),
+      type: "eeg-emg",
+      filename: `${eegFile.name}${emgFile ? " + " + emgFile.name : ""}`,
+      meta,
+      eeg: result.eeg as SignalMetrics,
+      emg: result.emg as SignalMetrics,
+      classification: result.classification,
+    });
+    setSavedId(id);
+  }, [result, eegFile, emgFile, savedId, meta]);
 
   return (
     <div ref={pageRef} className="mx-auto max-w-6xl space-y-6 px-6 py-8">
@@ -100,6 +98,8 @@ function Page() {
           Faça upload de uma imagem de <strong>EEG</strong> e uma de <strong>EMG</strong> separadamente para análise automática do estágio de sono.
         </p>
       </div>
+
+      <MetadataForm value={meta} onChange={setMeta} />
 
       <div className="grid gap-4 md:grid-cols-2">
         <SingleUpload
@@ -176,13 +176,14 @@ function Page() {
                 eeg: result.eeg,
                 emg: result.emg,
                 classification: result.classification,
+                meta,
               })}
             >
               <FileText className="h-4 w-4" /> Relatório PDF
             </Button>
             <Button
               className="gap-2"
-              onClick={() => exportCSV(result.eeg, result.emg, result.classification)}
+              onClick={() => exportCSV(result.eeg, result.emg, result.classification, meta)}
             >
               <Download className="h-4 w-4" /> Baixar CSV
             </Button>

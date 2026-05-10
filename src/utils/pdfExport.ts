@@ -2,6 +2,7 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import type { SignalMetrics, Classification } from "./signalAnalysis";
 import { classificationToBinary } from "./signalAnalysis";
+import type { RecordMeta } from "@/components/MetadataForm";
 
 interface PDFInput {
   filename?: string;
@@ -10,6 +11,7 @@ interface PDFInput {
   emg: SignalMetrics;
   classification: Classification;
   date?: string;
+  meta?: RecordMeta;
 }
 
 export function exportPDF({
@@ -19,6 +21,7 @@ export function exportPDF({
   emg,
   classification,
   date,
+  meta,
 }: PDFInput) {
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const pageW = doc.internal.pageSize.getWidth();
@@ -36,6 +39,15 @@ export function exportPDF({
   if (filename) {
     y += 14;
     doc.text(`Arquivo: ${filename}`, 40, y);
+  }
+  if (meta && (meta.subject || meta.group || meta.collectedAt || meta.epoch)) {
+    const parts = [
+      meta.subject && `Sujeito: ${meta.subject}`,
+      meta.group && `Grupo: ${meta.group}`,
+      meta.collectedAt && `Coleta: ${new Date(meta.collectedAt).toLocaleString("pt-BR")}`,
+      meta.epoch && `Época: ${meta.epoch}`,
+    ].filter(Boolean) as string[];
+    parts.forEach((p) => { y += 14; doc.text(p, 40, y); });
   }
   y += 24;
 
