@@ -19,6 +19,7 @@ import {
 import type { Classification, MemoryPattern } from "@/utils/signalAnalysis";
 import { exportHistoryCSV } from "@/utils/csvExport";
 import { exportElementPDF } from "@/utils/pdfExport";
+import { buildFromEEGEMG, buildFromECoG } from "@/components/TraumaPatternsCard";
 
 export const Route = createFileRoute("/history")({
   component: HistoryPage,
@@ -60,11 +61,30 @@ interface DerivedRow {
   fusos: number;
   cmcPhase: string;
   thetaPct: number;
+  // metadata
+  subject: string;
+  group: string;
+  collectedAt: string;
+  epoch: string;
+  samplingRate: string;
+  // ECOG PS
+  ecogGrade: number;
+  ecogLabel: string;
 }
 
 function derive(e: HistoryEntry): DerivedRow {
+  const meta = e.meta;
+  const baseMeta = {
+    subject: meta?.subject || "—",
+    group: meta?.group || "—",
+    collectedAt: meta?.collectedAt || "—",
+    epoch: meta?.epoch || "—",
+    samplingRate: meta?.samplingRate || "—",
+  };
+
   if (e.type === "eeg-emg") {
     const r = e.eeg.relativeBandPowers;
+    const t = buildFromEEGEMG(e.eeg, e.emg, e.classification);
     return {
       id: e.id,
       filename: e.filename,
@@ -79,10 +99,14 @@ function derive(e: HistoryEntry): DerivedRow {
       fusos: Math.round((r.beta * 100) / 5),
       cmcPhase: cmcFromClassification(e.classification),
       thetaPct: Math.round(r.theta * 100),
+      ...baseMeta,
+      ecogGrade: t.ecogPS.grade,
+      ecogLabel: t.ecogPS.label,
     };
   }
   const m = e.channelA.metrics;
   const r = m.relativeBandPowers;
+  const t = buildFromECoG(e.channelA);
   return {
     id: e.id,
     filename: e.filename,
@@ -95,7 +119,24 @@ function derive(e: HistoryEntry): DerivedRow {
     fusos: Math.round((r.beta * 100) / 5),
     cmcPhase: cmcFromMemory(e.channelA.memoryPattern),
     thetaPct: Math.round(r.theta * 100),
+    ...baseMeta,
+    ecogGrade: t.ecogPS.grade,
+    ecogLabel: t.ecogPS.label,
   };
+}
+
+function fmtCollectedAt(s: string) {
+  if (!s || s === "—") return "—";
+  const d = new Date(s);
+  if (isNaN(d.getTime())) return s;
+  return d.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+}
+
+function ecogBadgeClass(grade: number) {
+  if (grade <= 1) return "border-emerald-300 bg-emerald-50 text-emerald-800";
+  if (grade === 2) return "border-amber-300 bg-amber-50 text-amber-800";
+  if (grade === 3) return "border-orange-300 bg-orange-50 text-orange-800";
+  return "border-red-300 bg-red-50 text-red-800";
 }
 
 const COLORS = {
@@ -301,6 +342,11 @@ function HistoryPage() {
                 <TableRow>
                   <TableHead>Arquivo</TableHead>
                   <TableHead>Fonte</TableHead>
+                  <TableHead>Sujeito</TableHead>
+                  <TableHead>Grupo</TableHead>
+                  <TableHead>Coleta</TableHead>
+                  <TableHead>Época</TableHead>
+                  <TableHead>Fs (Hz)</TableHead>
                   <TableHead>Classificação</TableHead>
                   <TableHead>EEG Var.</TableHead>
                   <TableHead>EMG Var.</TableHead>
@@ -308,6 +354,7 @@ function HistoryPage() {
                   <TableHead>SWR</TableHead>
                   <TableHead>Fusos</TableHead>
                   <TableHead>CMC Fase</TableHead>
+                  <TableHead>ECOG PS</TableHead>
                   <TableHead className="text-right"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -326,6 +373,11 @@ function HistoryPage() {
                         </span>
                       )}
                     </TableCell>
+                    <TableCell className="text-xs">{r.subject}</TableCell>
+                    <TableCell className="text-xs">{r.group}</TableCell>
+                    <TableCell className="text-xs whitespace-nowrap">{fmtCollectedAt(r.collectedAt)}</TableCell>
+                    <TableCell className="text-xs">{r.epoch}</TableCell>
+                    <TableCell className="font-mono text-xs">{r.samplingRate}</TableCell>
                     <TableCell>
                       <span className="inline-flex rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-800">
                         {r.classificationLabel}
@@ -337,6 +389,14 @@ function HistoryPage() {
                     <TableCell className="font-mono text-xs">{r.swr}</TableCell>
                     <TableCell className="font-mono text-xs">{r.fusos}</TableCell>
                     <TableCell className="text-xs">{r.cmcPhase}</TableCell>
+                    <TableCell>
+                      <span
+                        className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] font-medium ${ecogBadgeClass(r.ecogGrade)}`}
+                        title={r.ecogLabel}
+                      >
+                        PS {r.ecogGrade} · {r.ecogLabel}
+                      </span>
+                    </TableCell>
                     <TableCell className="text-right">
                       <Button size="sm" variant="ghost" className="h-7 px-2 text-destructive"
                         onClick={() => handleDelete(r.id)}>
