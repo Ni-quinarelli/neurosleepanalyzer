@@ -9,9 +9,11 @@ export interface RecordMeta {
   epoch: string;
   /** Taxa de amostragem em Hz (opcional). Quando informado, melhora a precisão da análise espectral. */
   samplingRate?: string;
+  /** ECOG Performance Status (0–5) — escala clínica funcional, manual. */
+  ecogPerformanceStatus?: string;
 }
 
-export const emptyMeta: RecordMeta = { subject: "", group: "", collectedAt: "", epoch: "", samplingRate: "" };
+export const emptyMeta: RecordMeta = { subject: "", group: "", collectedAt: "", epoch: "", samplingRate: "", ecogPerformanceStatus: "" };
 
 export function MetadataForm({
   value,
