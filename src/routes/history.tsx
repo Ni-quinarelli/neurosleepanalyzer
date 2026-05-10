@@ -135,59 +135,46 @@ function HistoryPage() {
       )}
 
       {entries.length > 0 && (
-        <Card className="overflow-x-auto p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Data</TableHead>
-                <TableHead>Fonte</TableHead>
-                <TableHead>Sujeito</TableHead>
-                <TableHead>Grupo</TableHead>
-                <TableHead>Coleta</TableHead>
-                <TableHead>Época</TableHead>
-                <TableHead>Arquivo</TableHead>
-                <TableHead>Resultado</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {entries.map((e) => (
-                <TableRow key={e.id}>
-                  <TableCell className="whitespace-nowrap text-xs font-mono">{fmtDate(e.date)}</TableCell>
-                  <TableCell>
-                    {e.type === "eeg-emg" ? (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-blue-300 bg-blue-50 px-2 py-0.5 text-xs text-blue-800">
-                        <Activity className="h-3 w-3" /> EEG/EMG
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-purple-300 bg-purple-50 px-2 py-0.5 text-xs text-purple-800">
-                        <Brain className="h-3 w-3" /> ECoG
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-xs">{e.meta?.subject || "—"}</TableCell>
-                  <TableCell className="text-xs">{e.meta?.group || "—"}</TableCell>
-                  <TableCell className="whitespace-nowrap text-xs">
-                    {e.meta?.collectedAt ? new Date(e.meta.collectedAt).toLocaleString("pt-BR", {
-                      day: "2-digit", month: "2-digit", year: "numeric",
-                      hour: "2-digit", minute: "2-digit", second: "2-digit",
-                    }) : "—"}
-                  </TableCell>
-                  <TableCell className="text-xs">{e.meta?.epoch || "—"}</TableCell>
-                  <TableCell className="max-w-[180px] truncate text-xs" title={e.filename}>{e.filename}</TableCell>
-                  <TableCell>
-                    {e.type === "eeg-emg" ? (
-                      <ClassificationBadge value={e.classification} />
-                    ) : (
-                      <span className="text-xs">
-                        {Math.round(e.channelA.consolidationScore * 100)}% · CMC {e.channelA.cmcReferenceLevel}
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
-                      {e.type === "eeg-emg" && (
-                        <>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Card className="overflow-x-auto p-0">
+            <div className="flex items-center gap-2 border-b px-4 py-3">
+              <Activity className="h-4 w-4 text-blue-700" />
+              <p className="text-sm font-medium">EEG / EMG</p>
+              <span className="text-xs text-muted-foreground">({eegEmg.length})</span>
+            </div>
+            {eegEmg.length === 0 ? (
+              <p className="p-6 text-center text-xs text-muted-foreground">Sem registros EEG/EMG.</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Sujeito</TableHead>
+                    <TableHead>Grupo</TableHead>
+                    <TableHead>Coleta</TableHead>
+                    <TableHead>Época</TableHead>
+                    <TableHead>Arquivo</TableHead>
+                    <TableHead>Resultado</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {eegEmg.map((e) => (
+                    <TableRow key={e.id}>
+                      <TableCell className="whitespace-nowrap text-xs font-mono">{fmtDate(e.date)}</TableCell>
+                      <TableCell className="text-xs">{e.meta?.subject || "—"}</TableCell>
+                      <TableCell className="text-xs">{e.meta?.group || "—"}</TableCell>
+                      <TableCell className="whitespace-nowrap text-xs">
+                        {e.meta?.collectedAt ? new Date(e.meta.collectedAt).toLocaleString("pt-BR", {
+                          day: "2-digit", month: "2-digit", year: "numeric",
+                          hour: "2-digit", minute: "2-digit", second: "2-digit",
+                        }) : "—"}
+                      </TableCell>
+                      <TableCell className="text-xs">{e.meta?.epoch || "—"}</TableCell>
+                      <TableCell className="max-w-[180px] truncate text-xs" title={e.filename}>{e.filename}</TableCell>
+                      <TableCell><ClassificationBadge value={e.classification} /></TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
                           <Button size="sm" variant="ghost" className="h-7 px-2"
                             onClick={() => exportPDF({
                               filename: e.filename, eeg: e.eeg, emg: e.emg,
@@ -199,28 +186,82 @@ function HistoryPage() {
                             onClick={() => exportCSV(e.eeg, e.emg, e.classification, e.meta)}>
                             <Download className="h-3.5 w-3.5" />
                           </Button>
-                        </>
-                      )}
-                      {e.type === "ecog" && (
-                        <Button size="sm" variant="ghost" className="h-7 px-2"
-                          onClick={() => exportECoGCSV(
-                            [{ label: "Canal A", data: e.channelA }, ...(e.channelB ? [{ label: "Canal B", data: e.channelB }] : [])],
-                            e.meta,
-                          )}>
-                          <Download className="h-3.5 w-3.5" />
-                        </Button>
-                      )}
-                      <Button size="sm" variant="ghost" className="h-7 px-2 text-destructive"
-                        onClick={() => handleDelete(e.id)}>
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
+                          <Button size="sm" variant="ghost" className="h-7 px-2 text-destructive"
+                            onClick={() => handleDelete(e.id)}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </Card>
+
+          <Card className="overflow-x-auto p-0">
+            <div className="flex items-center gap-2 border-b px-4 py-3">
+              <Brain className="h-4 w-4 text-purple-700" />
+              <p className="text-sm font-medium">ECoG</p>
+              <span className="text-xs text-muted-foreground">({ecog.length})</span>
+            </div>
+            {ecog.length === 0 ? (
+              <p className="p-6 text-center text-xs text-muted-foreground">Sem registros ECoG.</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Sujeito</TableHead>
+                    <TableHead>Grupo</TableHead>
+                    <TableHead>Coleta</TableHead>
+                    <TableHead>Época</TableHead>
+                    <TableHead>Arquivo</TableHead>
+                    <TableHead>Resultado</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {ecog.map((e) => (
+                    <TableRow key={e.id}>
+                      <TableCell className="whitespace-nowrap text-xs font-mono">{fmtDate(e.date)}</TableCell>
+                      <TableCell className="text-xs">{e.meta?.subject || "—"}</TableCell>
+                      <TableCell className="text-xs">{e.meta?.group || "—"}</TableCell>
+                      <TableCell className="whitespace-nowrap text-xs">
+                        {e.meta?.collectedAt ? new Date(e.meta.collectedAt).toLocaleString("pt-BR", {
+                          day: "2-digit", month: "2-digit", year: "numeric",
+                          hour: "2-digit", minute: "2-digit", second: "2-digit",
+                        }) : "—"}
+                      </TableCell>
+                      <TableCell className="text-xs">{e.meta?.epoch || "—"}</TableCell>
+                      <TableCell className="max-w-[180px] truncate text-xs" title={e.filename}>{e.filename}</TableCell>
+                      <TableCell>
+                        <span className="text-xs">
+                          {Math.round(e.channelA.consolidationScore * 100)}% · CMC {e.channelA.cmcReferenceLevel}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          <Button size="sm" variant="ghost" className="h-7 px-2"
+                            onClick={() => exportECoGCSV(
+                              [{ label: "Canal A", data: e.channelA }, ...(e.channelB ? [{ label: "Canal B", data: e.channelB }] : [])],
+                              e.meta,
+                            )}>
+                            <Download className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button size="sm" variant="ghost" className="h-7 px-2 text-destructive"
+                            onClick={() => handleDelete(e.id)}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </Card>
+        </div>
       )}
     </div>
   );
