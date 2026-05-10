@@ -57,15 +57,24 @@ export function SingleUpload({ label, file, preview, onFile, hint, accent = "def
       <p className={`mb-3 text-xs font-bold uppercase tracking-wider ${a.label}`}>
         {label}
       </p>
-      {preview ? (
+      {file ? (
         <div className="w-full">
-          <img
-            src={preview}
-            alt={label}
-            className="max-h-44 w-full rounded border border-border object-contain"
-          />
+          {isTextFile || !preview ? (
+            <div className="flex h-44 w-full items-center justify-center rounded border border-border bg-muted/30 text-center text-xs text-muted-foreground">
+              <div>
+                <p className="font-medium text-foreground">Sinal bruto</p>
+                <p className="mt-1">{file.name}</p>
+              </div>
+            </div>
+          ) : (
+            <img
+              src={preview}
+              alt={label}
+              className="max-h-44 w-full rounded border border-border object-contain"
+            />
+          )}
           <div className="mt-2 flex items-center justify-between gap-2">
-            <p className="truncate text-xs text-muted-foreground">{file?.name}</p>
+            <p className="truncate text-xs text-muted-foreground">{file.name}</p>
             <Button
               size="sm"
               variant="ghost"
@@ -82,7 +91,7 @@ export function SingleUpload({ label, file, preview, onFile, hint, accent = "def
             <Upload className="h-6 w-6" />
           </div>
           <p className="mb-1 text-sm font-medium">Arraste ou clique</p>
-          <p className="mb-3 text-[11px] text-muted-foreground">PNG / JPG</p>
+          <p className="mb-3 text-[11px] text-muted-foreground">PNG / JPG · CSV / TXT</p>
           {hint && (
             <p className="mb-3 text-center text-[10px] text-muted-foreground">{hint}</p>
           )}
@@ -94,7 +103,7 @@ export function SingleUpload({ label, file, preview, onFile, hint, accent = "def
       <input
         ref={inputRef}
         type="file"
-        accept="image/png,image/jpeg"
+        accept="image/png,image/jpeg,.csv,.txt,.tsv,.dat,text/csv,text/plain"
         className="hidden"
         onChange={(e) => handle(e.target.files)}
       />
