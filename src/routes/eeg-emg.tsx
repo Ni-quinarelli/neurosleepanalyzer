@@ -147,6 +147,8 @@ function Page() {
 
           <TraumaPatternsCard data={buildFromEEGEMG(result.eeg, result.emg, result.classification)} />
 
+          <Card className="p-4">
+            <p className="mb-3 text-sm font-medium">Saída binária</p>
             <Table>
               <TableHeader>
                 <TableRow>
