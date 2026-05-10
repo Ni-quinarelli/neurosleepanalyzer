@@ -35,7 +35,7 @@ export function MetadataForm({
         </div>
         <div className="space-y-1">
           <Label htmlFor="m-collected" className="text-xs">Data e hora da coleta</Label>
-          <Input id="m-collected" type="datetime-local" value={value.collectedAt} onChange={set("collectedAt")} />
+          <Input id="m-collected" type="datetime-local" step="1" value={value.collectedAt} onChange={set("collectedAt")} />
         </div>
         <div className="space-y-1">
           <Label htmlFor="m-epoch" className="text-xs">Época</Label>
