@@ -19,6 +19,7 @@ import {
 import type { Classification, MemoryPattern } from "@/utils/signalAnalysis";
 import { exportHistoryCSV } from "@/utils/csvExport";
 import { exportElementPDF } from "@/utils/pdfExport";
+import { buildFromEEGEMG, buildFromECoG } from "@/components/TraumaPatternsCard";
 
 export const Route = createFileRoute("/history")({
   component: HistoryPage,
