@@ -67,11 +67,15 @@ function Page() {
 
   const result = useMemo(() => {
     if (!eegSignal || !emgSignal) return null;
-    const eeg = computeMetrics(eegSignal, thresholds.peakSensitivity, thresholds.epochDurationSec);
-    const emg = computeMetrics(emgSignal, thresholds.peakSensitivity, thresholds.epochDurationSec);
+    const fs = Number(meta.samplingRate);
+    const epoch = Number.isFinite(fs) && fs > 0
+      ? eegSignal.length / fs
+      : thresholds.epochDurationSec;
+    const eeg = computeMetrics(eegSignal, thresholds.peakSensitivity, epoch);
+    const emg = computeMetrics(emgSignal, thresholds.peakSensitivity, emgSignal.length / (Number.isFinite(fs) && fs > 0 ? fs : (emgSignal.length / thresholds.epochDurationSec)));
     const c = classify(eeg, emg, thresholds);
     return { eeg, emg, classification: c, binary: classificationToBinary(c) };
-  }, [eegSignal, emgSignal, thresholds]);
+  }, [eegSignal, emgSignal, thresholds, meta.samplingRate]);
 
   useEffect(() => {
     if (!result || !eegFile || savedId) return;
