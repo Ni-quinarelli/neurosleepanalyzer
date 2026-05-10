@@ -4,6 +4,7 @@ import { Download, FileImage, Brain } from "lucide-react";
 import { SingleUpload } from "@/components/SingleUpload";
 import { PageHeader } from "@/components/PageHeader";
 import { SignalChart } from "@/components/SignalChart";
+import { MetadataForm, emptyMeta, type RecordMeta } from "@/components/MetadataForm";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +14,7 @@ import { extractSingleSignal } from "@/utils/imageProcessor";
 import { analyzeECoG, type ECoGAnalysis } from "@/utils/signalAnalysis";
 import { exportECoGCSV } from "@/utils/csvExport";
 import { exportElementPDF } from "@/utils/pdfExport";
-import { fileToThumbnail, saveEntry } from "@/utils/history";
+import { saveEntry } from "@/utils/history";
 
 export const Route = createFileRoute("/ecog")({
   component: Page,
@@ -32,6 +33,7 @@ function Page() {
   const [previewB, setPreviewB] = useState<string | null>(null);
   const [signalA, setSignalA] = useState<number[] | null>(null);
   const [signalB, setSignalB] = useState<number[] | null>(null);
+  const [meta, setMeta] = useState<RecordMeta>(emptyMeta);
   const [savedId, setSavedId] = useState<string | null>(null);
   const pageRef = useRef<HTMLDivElement>(null);
 
@@ -57,24 +59,19 @@ function Page() {
   const analysisB = useMemo(() => signalB ? analyzeECoG(signalB) : null, [signalB]);
 
   useEffect(() => {
-    (async () => {
-      if (!analysisA || !fileA || savedId) return;
-      const thumb = await fileToThumbnail(fileA);
-      const thumbB = fileB ? await fileToThumbnail(fileB) : undefined;
-      const id = `${Date.now()}`;
-      saveEntry({
-        id,
-        date: new Date().toISOString(),
-        type: "ecog",
-        filename: `${fileA.name}${fileB ? " + " + fileB.name : ""}`,
-        thumbnail: thumb,
-        thumbnail2: thumbB,
-        channelA: analysisA,
-        channelB: analysisB ?? undefined,
-      });
-      setSavedId(id);
-    })();
-  }, [analysisA, analysisB, fileA, fileB, savedId]);
+    if (!analysisA || !fileA || savedId) return;
+    const id = `${Date.now()}`;
+    saveEntry({
+      id,
+      date: new Date().toISOString(),
+      type: "ecog",
+      filename: `${fileA.name}${fileB ? " + " + fileB.name : ""}`,
+      meta,
+      channelA: analysisA,
+      channelB: analysisB ?? undefined,
+    });
+    setSavedId(id);
+  }, [analysisA, analysisB, fileA, fileB, savedId, meta]);
 
   return (
     <div ref={pageRef} className="mx-auto max-w-6xl space-y-6 px-6 py-8">
@@ -89,6 +86,8 @@ function Page() {
           de Medo ao Contexto) é estimada teoricamente a partir desses padrões.
         </p>
       </div>
+
+      <MetadataForm value={meta} onChange={setMeta} />
 
       <div className="grid gap-4 md:grid-cols-2">
         <SingleUpload
@@ -142,6 +141,7 @@ function Page() {
             onClick={() =>
               exportECoGCSV(
                 [{ label: "Canal A", data: analysisA }, ...(analysisB ? [{ label: "Canal B", data: analysisB }] : [])],
+                meta,
               )
             }
           >
