@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { extractSingleSignal } from "@/utils/imageProcessor";
+import { loadSignal } from "@/utils/signalLoader";
 import { analyzeECoG, type ECoGAnalysis } from "@/utils/signalAnalysis";
 import { exportECoGCSV } from "@/utils/csvExport";
 import { exportElementPDF } from "@/utils/pdfExport";
@@ -41,7 +41,7 @@ function Page() {
     if (!fileA) { setPreviewA(null); setSignalA(null); return; }
     const url = URL.createObjectURL(fileA);
     setPreviewA(url);
-    extractSingleSignal(fileA).then(setSignalA);
+    loadSignal(fileA).then(setSignalA);
     return () => URL.revokeObjectURL(url);
   }, [fileA]);
 
@@ -49,14 +49,17 @@ function Page() {
     if (!fileB) { setPreviewB(null); setSignalB(null); return; }
     const url = URL.createObjectURL(fileB);
     setPreviewB(url);
-    extractSingleSignal(fileB).then(setSignalB);
+    loadSignal(fileB).then(setSignalB);
     return () => URL.revokeObjectURL(url);
   }, [fileB]);
 
   useEffect(() => { setSavedId(null); }, [fileA, fileB]);
 
-  const analysisA = useMemo(() => signalA ? analyzeECoG(signalA) : null, [signalA]);
-  const analysisB = useMemo(() => signalB ? analyzeECoG(signalB) : null, [signalB]);
+  const fsNum = Number(meta.samplingRate);
+  const epochA = signalA && Number.isFinite(fsNum) && fsNum > 0 ? signalA.length / fsNum : undefined;
+  const epochB = signalB && Number.isFinite(fsNum) && fsNum > 0 ? signalB.length / fsNum : undefined;
+  const analysisA = useMemo(() => signalA ? analyzeECoG(signalA, 0.05, epochA) : null, [signalA, epochA]);
+  const analysisB = useMemo(() => signalB ? analyzeECoG(signalB, 0.05, epochB) : null, [signalB, epochB]);
 
   useEffect(() => {
     if (!analysisA || !fileA || savedId) return;
@@ -80,10 +83,11 @@ function Page() {
         <h1 className="text-2xl font-semibold tracking-tight">Análise ECoG</h1>
         <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
           O ECoG (eletrocorticografia) permite visualizar a atividade cortical envolvida na{" "}
-          formação e recuperação de memórias traumáticas. Anexe um ou dois traçados (por exemplo,
-          pré e pós condicionamento) para identificar padrões de consolidação, reprocessamento
-          emocional e hipervigilância. A escala de referência <strong>CMC</strong> (Condicionamento
-          de Medo ao Contexto) é estimada teoricamente a partir desses padrões.
+          formação e recuperação de memórias traumáticas. Anexe um ou dois traçados (imagem
+          PNG/JPG ou sinal bruto <code>.csv</code>/<code>.txt</code>) — informe a taxa de
+          amostragem (Hz) nos metadados para análise espectral precisa. A escala de referência{" "}
+          <strong>CMC</strong> (Condicionamento de Medo ao Contexto) é estimada a partir dos
+          padrões detectados.
         </p>
       </div>
 

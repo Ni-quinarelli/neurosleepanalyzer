@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { extractSingleSignal } from "@/utils/imageProcessor";
+import { loadSignal } from "@/utils/signalLoader";
 import {
   classify, classificationToBinary, computeMetrics,
   defaultThresholds, type Thresholds, type SignalMetrics,
@@ -50,7 +50,7 @@ function Page() {
     const url = URL.createObjectURL(eegFile);
     setEegPreview(url);
     setBusy(true);
-    extractSingleSignal(eegFile).then(setEegSignal).finally(() => setBusy(false));
+    loadSignal(eegFile).then(setEegSignal).finally(() => setBusy(false));
     return () => URL.revokeObjectURL(url);
   }, [eegFile]);
 
@@ -59,7 +59,7 @@ function Page() {
     const url = URL.createObjectURL(emgFile);
     setEmgPreview(url);
     setBusy(true);
-    extractSingleSignal(emgFile).then(setEmgSignal).finally(() => setBusy(false));
+    loadSignal(emgFile).then(setEmgSignal).finally(() => setBusy(false));
     return () => URL.revokeObjectURL(url);
   }, [emgFile]);
 
@@ -67,11 +67,15 @@ function Page() {
 
   const result = useMemo(() => {
     if (!eegSignal || !emgSignal) return null;
-    const eeg = computeMetrics(eegSignal, thresholds.peakSensitivity, thresholds.epochDurationSec);
-    const emg = computeMetrics(emgSignal, thresholds.peakSensitivity, thresholds.epochDurationSec);
+    const fs = Number(meta.samplingRate);
+    const epoch = Number.isFinite(fs) && fs > 0
+      ? eegSignal.length / fs
+      : thresholds.epochDurationSec;
+    const eeg = computeMetrics(eegSignal, thresholds.peakSensitivity, epoch);
+    const emg = computeMetrics(emgSignal, thresholds.peakSensitivity, emgSignal.length / (Number.isFinite(fs) && fs > 0 ? fs : (emgSignal.length / thresholds.epochDurationSec)));
     const c = classify(eeg, emg, thresholds);
     return { eeg, emg, classification: c, binary: classificationToBinary(c) };
-  }, [eegSignal, emgSignal, thresholds]);
+  }, [eegSignal, emgSignal, thresholds, meta.samplingRate]);
 
   useEffect(() => {
     if (!result || !eegFile || savedId) return;
@@ -95,7 +99,9 @@ function Page() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Análise EEG/EMG</h1>
         <p className="text-sm text-muted-foreground">
-          Faça upload de uma imagem de <strong>EEG</strong> e uma de <strong>EMG</strong> separadamente para análise automática do estágio de sono.
+          Faça upload de <strong>EEG</strong> e <strong>EMG</strong> separadamente — imagem do traçado
+          (PNG/JPG) ou sinal bruto (<code>.csv</code>/<code>.txt</code>, uma amostra por linha).
+          Para máxima precisão, informe a taxa de amostragem em Hz nos metadados.
         </p>
       </div>
 
