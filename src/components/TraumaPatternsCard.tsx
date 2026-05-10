@@ -28,6 +28,56 @@ interface TraumaInput {
     probability: TraumaLevel;
     description: string;
   };
+  /** ECOG Performance Status (0–4) derivado automaticamente do padrão neurofisiológico. */
+  ecogPS: {
+    grade: number;
+    label: string;
+    description: string;
+    rationale: string;
+  };
+}
+
+const ECOG_PS_TABLE: { grade: number; label: string; description: string }[] = [
+  { grade: 0, label: "Totalmente ativo",   description: "Capaz de manter todas as atividades prévias, sem restrições." },
+  { grade: 1, label: "Restrição leve",     description: "Restrições para atividades extenuantes; capaz de trabalho leve / sedentário." },
+  { grade: 2, label: "Ambulante",          description: "Cuidados pessoais preservados; sem capacidade laboral; ativo > 50% do dia." },
+  { grade: 3, label: "Cuidados limitados", description: "Cuidados pessoais limitados; acamado/sentado > 50% do dia." },
+  { grade: 4, label: "Incapacitado",       description: "Totalmente incapacitado; sem autocuidado; confinado à cama/cadeira." },
+  { grade: 5, label: "Óbito",              description: "Morte." },
+];
+
+/**
+ * Estima o ECOG Performance Status (0–4) a partir do estado neurofisiológico.
+ * Premissa: melhor consolidação + menor freezing/hipervigilância → menor
+ * impacto funcional. Padrões inconclusivos elevam o grau por incerteza.
+ * Grau 5 nunca é atribuído automaticamente (requer constatação clínica).
+ */
+function deriveEcogPS(
+  consolidationIndex: number,   // 0..100
+  freezingPct: number,          // 0..100
+  tone: TraumaInput["phaseTone"],
+): TraumaInput["ecogPS"] {
+  const cons = Math.max(0, Math.min(100, consolidationIndex));
+  const freeze = Math.max(0, Math.min(100, freezingPct));
+  // 0 (ótimo) … 100 (péssimo)
+  let impact = 0.55 * (100 - cons) + 0.45 * freeze;
+  if (tone === "wake") impact += 10;     // hipervigilância pesa
+  if (tone === "unknown") impact += 15;  // incerteza pesa
+  impact = Math.max(0, Math.min(100, impact));
+
+  let grade: number;
+  if (impact < 18) grade = 0;
+  else if (impact < 36) grade = 1;
+  else if (impact < 55) grade = 2;
+  else if (impact < 75) grade = 3;
+  else grade = 4;
+
+  const row = ECOG_PS_TABLE[grade];
+  const rationale =
+    `Derivado de Índice de Consolidação ${cons} e Congelamento estimado ${freeze}% ` +
+    `(impacto funcional ${Math.round(impact)}/100, fase: ${tone}).`;
+
+  return { grade, label: row.label, description: row.description, rationale };
 }
 
 // ---------- builders ----------
@@ -129,6 +179,7 @@ export function buildFromEEGEMG(
     phaseTitle, phaseDescription, clinicalNote, phaseTone: tone,
     oscillations,
     cmc: { phase: cmcPhase, freezingRange: freezingRange(freezingPct), probability: cmcProb, description: cmcDesc },
+    ecogPS: deriveEcogPS(consolidationIndex, freezingPct, tone),
   };
 }
 
@@ -211,6 +262,7 @@ export function buildFromECoG(a: ECoGAnalysis): TraumaInput {
             ? "Padrão intermediário — resposta de freezing variável conforme estágio do paradigma."
             : "Padrão de baixa expressão de medo. Consolidação/extinção bem integrada.",
     },
+    ecogPS: deriveEcogPS(consolidationIndex, a.cmcFreezingEstimate, tone),
   };
 }
 
@@ -327,6 +379,68 @@ export function TraumaPatternsCard({ data }: { data: TraumaInput }) {
         </div>
         <p className="text-xs leading-relaxed text-muted-foreground">{data.cmc.description}</p>
       </Card>
+
+      <EcogPSCard ps={data.ecogPS} />
     </div>
+  );
+}
+
+// ---------- ECOG Performance Status (auto) ----------
+
+function gradeColor(grade: number) {
+  if (grade <= 1) return "border-emerald-300 bg-emerald-50 text-emerald-800";
+  if (grade === 2) return "border-amber-300 bg-amber-50 text-amber-800";
+  if (grade === 3) return "border-orange-300 bg-orange-50 text-orange-800";
+  return "border-red-300 bg-red-50 text-red-800";
+}
+
+function EcogPSCard({ ps }: { ps: TraumaInput["ecogPS"] }) {
+  return (
+    <Card className="space-y-3 p-5">
+      <div className="flex flex-wrap items-center gap-2">
+        <Activity className="h-4 w-4 text-primary" />
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          ECOG Performance Status · Estimativa Automática
+        </p>
+        <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${gradeColor(ps.grade)}`}>
+          Nota {ps.grade} — {ps.label}
+        </span>
+      </div>
+      <p className="text-sm">{ps.description}</p>
+      <p className="text-[11px] leading-relaxed text-muted-foreground">
+        <span className="font-semibold">Como foi calculado:</span> {ps.rationale}
+      </p>
+      <div className="rounded-md border border-border">
+        <table className="w-full text-xs">
+          <thead className="bg-muted/40 text-[10px] uppercase tracking-wider text-muted-foreground">
+            <tr>
+              <th className="w-12 py-2 text-center font-semibold">Nota</th>
+              <th className="py-2 text-left font-semibold">Status de desempenho ECOG</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {ECOG_PS_TABLE.map((r) => {
+              const active = r.grade === ps.grade;
+              return (
+                <tr key={r.grade} className={active ? "bg-primary/5" : ""}>
+                  <td className="py-2 text-center font-mono">
+                    <span className={`inline-flex h-6 w-6 items-center justify-center rounded-full border text-[10px] font-semibold ${active ? gradeColor(r.grade) : "border-border"}`}>
+                      {r.grade}
+                    </span>
+                  </td>
+                  <td className="py-2 pr-3 leading-relaxed">
+                    <span className="font-medium">{r.label}.</span>{" "}
+                    <span className="text-muted-foreground">{r.description}</span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <p className="text-[10px] leading-relaxed text-muted-foreground">
+        Estimativa derivada do padrão neurofisiológico (consolidação + freezing teórico). Não substitui avaliação clínica. Grau 5 nunca é atribuído automaticamente.
+      </p>
+    </Card>
   );
 }

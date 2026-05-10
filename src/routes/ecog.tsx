@@ -16,7 +16,6 @@ import { exportECoGCSV } from "@/utils/csvExport";
 import { exportElementPDF } from "@/utils/pdfExport";
 import { saveEntry } from "@/utils/history";
 import { TraumaPatternsCard, buildFromECoG } from "@/components/TraumaPatternsCard";
-import { EcogPerformanceCard } from "@/components/EcogPerformanceCard";
 
 export const Route = createFileRoute("/ecog")({
   component: Page,
@@ -95,10 +94,7 @@ function Page() {
 
       <MetadataForm value={meta} onChange={setMeta} />
 
-      <EcogPerformanceCard
-        value={meta.ecogPerformanceStatus}
-        onChange={(v) => setMeta({ ...meta, ecogPerformanceStatus: v })}
-      />
+
 
       <div className="grid gap-4 md:grid-cols-2">
         <SingleUpload
