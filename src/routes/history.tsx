@@ -138,22 +138,6 @@ function ecogBadgeClass(grade: number) {
   if (grade === 3) return "border-orange-300 bg-orange-50 text-orange-800";
   return "border-red-300 bg-red-50 text-red-800";
 }
-  const m = e.channelA.metrics;
-  const r = m.relativeBandPowers;
-  return {
-    id: e.id,
-    filename: e.filename,
-    type: e.type,
-    classificationLabel: e.channelA.memoryPattern,
-    eegVar: m.variance,
-    emgVar: e.channelB?.metrics.variance ?? 0,
-    consIndex: Math.round(e.channelA.consolidationScore * 100),
-    swr: Math.round(e.channelA.burstDensity / 2),
-    fusos: Math.round((r.beta * 100) / 5),
-    cmcPhase: cmcFromMemory(e.channelA.memoryPattern),
-    thetaPct: Math.round(r.theta * 100),
-  };
-}
 
 const COLORS = {
   blue: "hsl(220 70% 50%)",
