@@ -83,10 +83,11 @@ function Page() {
         <h1 className="text-2xl font-semibold tracking-tight">Análise ECoG</h1>
         <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
           O ECoG (eletrocorticografia) permite visualizar a atividade cortical envolvida na{" "}
-          formação e recuperação de memórias traumáticas. Anexe um ou dois traçados (por exemplo,
-          pré e pós condicionamento) para identificar padrões de consolidação, reprocessamento
-          emocional e hipervigilância. A escala de referência <strong>CMC</strong> (Condicionamento
-          de Medo ao Contexto) é estimada teoricamente a partir desses padrões.
+          formação e recuperação de memórias traumáticas. Anexe um ou dois traçados (imagem
+          PNG/JPG ou sinal bruto <code>.csv</code>/<code>.txt</code>) — informe a taxa de
+          amostragem (Hz) nos metadados para análise espectral precisa. A escala de referência{" "}
+          <strong>CMC</strong> (Condicionamento de Medo ao Contexto) é estimada a partir dos
+          padrões detectados.
         </p>
       </div>
 
