@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { extractSingleSignal } from "@/utils/imageProcessor";
+import { loadSignal } from "@/utils/imageProcessor";
 import { analyzeECoG, type ECoGAnalysis } from "@/utils/signalAnalysis";
 import { exportECoGCSV } from "@/utils/csvExport";
 import { exportElementPDF } from "@/utils/pdfExport";
@@ -41,7 +41,7 @@ function Page() {
     if (!fileA) { setPreviewA(null); setSignalA(null); return; }
     const url = URL.createObjectURL(fileA);
     setPreviewA(url);
-    extractSingleSignal(fileA).then(setSignalA);
+    loadSignal(fileA).then(setSignalA);
     return () => URL.revokeObjectURL(url);
   }, [fileA]);
 
@@ -49,7 +49,7 @@ function Page() {
     if (!fileB) { setPreviewB(null); setSignalB(null); return; }
     const url = URL.createObjectURL(fileB);
     setPreviewB(url);
-    extractSingleSignal(fileB).then(setSignalB);
+    loadSignal(fileB).then(setSignalB);
     return () => URL.revokeObjectURL(url);
   }, [fileB]);
 

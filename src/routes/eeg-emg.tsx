@@ -50,7 +50,7 @@ function Page() {
     const url = URL.createObjectURL(eegFile);
     setEegPreview(url);
     setBusy(true);
-    extractSingleSignal(eegFile).then(setEegSignal).finally(() => setBusy(false));
+    loadSignal(eegFile).then(setEegSignal).finally(() => setBusy(false));
     return () => URL.revokeObjectURL(url);
   }, [eegFile]);
 
@@ -59,7 +59,7 @@ function Page() {
     const url = URL.createObjectURL(emgFile);
     setEmgPreview(url);
     setBusy(true);
-    extractSingleSignal(emgFile).then(setEmgSignal).finally(() => setBusy(false));
+    loadSignal(emgFile).then(setEmgSignal).finally(() => setBusy(false));
     return () => URL.revokeObjectURL(url);
   }, [emgFile]);
 
