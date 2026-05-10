@@ -55,8 +55,11 @@ function Page() {
 
   useEffect(() => { setSavedId(null); }, [fileA, fileB]);
 
-  const analysisA = useMemo(() => signalA ? analyzeECoG(signalA) : null, [signalA]);
-  const analysisB = useMemo(() => signalB ? analyzeECoG(signalB) : null, [signalB]);
+  const fsNum = Number(meta.samplingRate);
+  const epochA = signalA && Number.isFinite(fsNum) && fsNum > 0 ? signalA.length / fsNum : undefined;
+  const epochB = signalB && Number.isFinite(fsNum) && fsNum > 0 ? signalB.length / fsNum : undefined;
+  const analysisA = useMemo(() => signalA ? analyzeECoG(signalA, 0.05, epochA) : null, [signalA, epochA]);
+  const analysisB = useMemo(() => signalB ? analyzeECoG(signalB, 0.05, epochB) : null, [signalB, epochB]);
 
   useEffect(() => {
     if (!analysisA || !fileA || savedId) return;
