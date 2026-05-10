@@ -21,6 +21,7 @@ import {
 import { exportCSV } from "@/utils/csvExport";
 import { exportElementPDF, exportPDF } from "@/utils/pdfExport";
 import { saveEntry } from "@/utils/history";
+import { TraumaPatternsCard, buildFromEEGEMG } from "@/components/TraumaPatternsCard";
 
 export const Route = createFileRoute("/eeg-emg")({
   component: Page,
@@ -143,6 +144,8 @@ function Page() {
             <p className="mb-3 text-sm font-medium">Métricas do sinal</p>
             <MetricsTable eeg={result.eeg} emg={result.emg} />
           </Card>
+
+          <TraumaPatternsCard data={buildFromEEGEMG(result.eeg, result.emg, result.classification)} />
 
           <Card className="p-4">
             <p className="mb-3 text-sm font-medium">Saída binária</p>
