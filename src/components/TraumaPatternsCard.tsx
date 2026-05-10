@@ -179,6 +179,7 @@ export function buildFromEEGEMG(
     phaseTitle, phaseDescription, clinicalNote, phaseTone: tone,
     oscillations,
     cmc: { phase: cmcPhase, freezingRange: freezingRange(freezingPct), probability: cmcProb, description: cmcDesc },
+    ecogPS: deriveEcogPS(consolidationIndex, freezingPct, tone),
   };
 }
 
