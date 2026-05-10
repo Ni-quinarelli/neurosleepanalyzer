@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { loadSignal } from "@/utils/imageProcessor";
+import { loadSignal } from "@/utils/signalLoader";
 import { analyzeECoG, type ECoGAnalysis } from "@/utils/signalAnalysis";
 import { exportECoGCSV } from "@/utils/csvExport";
 import { exportElementPDF } from "@/utils/pdfExport";
