@@ -145,8 +145,8 @@ function Page() {
             <MetricsTable eeg={result.eeg} emg={result.emg} />
           </Card>
 
-          <Card className="p-4">
-            <p className="mb-3 text-sm font-medium">Saída binária</p>
+          <TraumaPatternsCard data={buildFromEEGEMG(result.eeg, result.emg, result.classification)} />
+
             <Table>
               <TableHeader>
                 <TableRow>
