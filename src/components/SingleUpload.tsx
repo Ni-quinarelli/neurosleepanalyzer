@@ -30,9 +30,13 @@ export function SingleUpload({ label, file, preview, onFile, hint, accent = "def
   const handle = (files: FileList | null) => {
     const f = files?.[0];
     if (!f) return;
-    if (!/image\/(png|jpeg|jpg)/.test(f.type)) return;
+    const isImg = /image\/(png|jpeg|jpg)/.test(f.type);
+    const isText = /\.(csv|txt|tsv|dat)$/i.test(f.name);
+    if (!isImg && !isText) return;
     onFile(f);
   };
+
+  const isTextFile = file ? /\.(csv|txt|tsv|dat)$/i.test(file.name) : false;
 
   return (
     <div
