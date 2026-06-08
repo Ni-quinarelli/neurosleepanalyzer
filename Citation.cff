@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+title: NeuroSleep Analytic
+authors:
+  - family-names: Quinarelli
+    given-names: Nicoly Akemi Naka
+  - family-names: Santana
+    given-names: Luiz Henrique
+version: 1.0.0
+date-released: 2026-06-08
+license: MIT
